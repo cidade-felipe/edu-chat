@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduChat | Chatbot Educacional</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="page-shell">
+        <aside class="sidebar">
+            <div class="brand-card">
+                <div class="brand-orb">EA</div>
+                <div>
+                    <p class="eyebrow">Assistente educacional com IA</p>
+                    <h1>EduChat</h1>
+                    <p class="brand-copy">
+                        Escolha uma disciplina, envie sua dúvida e receba explicações curtas,
+                        didáticas e alinhadas ao ensino médio.
+                    </p>
+                </div>
+            </div>
+
+            <section class="sidebar-section">
+                <p class="section-label">Disciplinas</p>
+                <div class="subject-list">
+                    {% for subject in subjects %}
+                    <button
+                        type="button"
+                        class="subject-button{% if subject.key == default_subject %} is-active{% endif %}"
+                        data-subject="{{ subject.key }}"
+                    >
+                        <span class="subject-icon">{{ subject.icon }}</span>
+                        <span class="subject-copy">
+                            <strong>{{ subject.label }}</strong>
+                            <small>{{ subject.short_description }}</small>
+                        </span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section class="sidebar-section context-card">
+                <p class="section-label accent">Contexto atual</p>
+                <h2 id="current-subject-title"></h2>
+                <p id="current-subject-description"></p>
+            </section>
+
+            <section class="sidebar-section toggle-card">
+                <label class="quiz-toggle" for="quiz-mode">
+                    <div>
+                        <span class="section-label accent">Modo quiz</span>
+                        <p>O chatbot passa a fazer uma pergunta por vez e corrigir suas respostas.</p>
+                    </div>
+                    <span class="switch">
+                        <input type="checkbox" id="quiz-mode">
+                        <span class="slider"></span>
+                    </span>
+                </label>
+            </section>
+
+            <button type="button" id="clear-chat" class="danger-button">Limpar conversa</button>
+
+            <div class="status-card">
+                <span class="status-dot"></span>
+                <span>Pronto para responder</span>
+            </div>
+        </aside>
+
+        <main class="main-stage">
+            <section class="hero-card">
+                <div class="hero-copy">
+                    <p class="eyebrow accent">Bem-vindo ao EduChat</p>
+                    <h2 id="hero-title"></h2>
+                    <p id="hero-description"></p>
+                </div>
+                <div class="hero-badges">
+                    <span class="badge">Ensino médio</span>
+                    <span class="badge" id="mode-badge">Modo explicação</span>
+                    {% if model_name %}
+                    <span class="badge badge-subtle">Modelo: {{ model_name }}</span>
+                    {% endif %}
+                </div>
+            </section>
+
+            <section class="suggestions-card">
+                <div class="section-header">
+                    <p class="section-label accent">Sugestões para começar</p>
+                    <p class="section-helper">Clique em um atalho ou escreva sua própria pergunta.</p>
+                </div>
+                <div id="suggestion-list" class="suggestion-list"></div>
+            </section>
+
+            <section
+                id="notice-box"
+                class="notice{% if config_error %} notice-error{% endif %}"
+            >
+                {% if config_error %}
+                    {{ config_error }}
+                {% else %}
+                    Pronto para explicar conceitos, revisar exercícios e transformar teoria em algo prático.
+                {% endif %}
+            </section>
+
+            <section class="chat-shell">
+                <div id="empty-state" class="empty-state">
+                    <div class="empty-icon">✦</div>
+                    <h3>Escolha uma disciplina e envie sua primeira dúvida</h3>
+                    <p>
+                        O EduChat foi configurado para respostas curtas, claras e voltadas para
+                        estudantes do ensino médio.
+                    </p>
+                </div>
+                <div id="message-list" class="message-list" aria-live="polite"></div>
+            </section>
+
+            <form id="chat-form" class="composer">
+                <label for="message-input" class="composer-label">Sua mensagem</label>
+                <div class="composer-box">
+                    <textarea
+                        id="message-input"
+                        rows="4"
+                        placeholder="Digite sua pergunta..."
+                    ></textarea>
+                    <button type="submit" id="send-button" class="send-button" aria-label="Enviar mensagem">
+                        ➜
+                    </button>
+                </div>
+                <div class="composer-footer">
+                    <span>Enter para enviar</span>
+                    <span>Shift+Enter para nova linha</span>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        window.APP_CONFIG = {
+            defaultSubject: {{ default_subject | tojson }},
+            subjects: {{ subjects | tojson }},
+            configError: {{ config_error | tojson }},
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
+
