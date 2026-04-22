@@ -260,7 +260,6 @@ Opinião técnica: essa decisão é superior a manter dois chatbots separados, p
 - CSS3
 - JavaScript puro
 - Jinja2 para renderização de templates no lado do servidor
-- renderização local de Markdown para melhorar leitura das respostas
 
 ### 8.4 Recursos visuais
 
@@ -336,15 +335,14 @@ Responsável por:
 - carregar variáveis do `.env`;
 - validar campos obrigatórios;
 - normalizar o endpoint do Azure;
-- verificar consistência de `api-version` na configuração;
+- inferir `api-version` quando ela vier embutida na URL;
 - centralizar parâmetros operacionais do chatbot.
 
 Esse módulo foi importante para corrigir um problema real ocorrido durante a integração.
 
 Fato: o endpoint havia sido configurado com a URL completa da rota, e não com a base do recurso.
 Fato: isso causava erro `404 Resource not found`.
-Fato: na versão atual, todas as variáveis críticas passaram a ser obrigatórias no `.env`, sem defaults silenciosos.
-Opinião técnica: tratar isso no código foi melhor do que depender apenas de configuração manual perfeita, porque reduz risco operacional e evita execução com ambiente parcialmente inválido.
+Opinião técnica: tratar isso no código foi melhor do que depender apenas de configuração manual perfeita, porque reduz risco operacional.
 
 ### 10.2 `edu_chat/subjects.py`
 
@@ -420,24 +418,12 @@ Controla:
 - envio de perguntas;
 - estado de carregamento;
 - renderização dinâmica das mensagens;
-- gerenciamento do modo quiz;
-- interpretação de Markdown básico nas respostas exibidas no chat.
+- gerenciamento do modo quiz.
 
 Também passou a tratar dois tipos de ícone:
 
 - ícones textuais, como símbolos ou emoji;
 - ícones por imagem, carregados da pasta `static/image/`.
-
-Também passou a interpretar marcações comuns retornadas pelo modelo, como:
-
-- `**negrito**`;
-- `*itálico*`;
-- `#`, `##` e `###`;
-- listas com `-`, `*` e `1.`;
-- código inline com crases.
-
-Fato: antes dessa melhoria, a interface mostrava os caracteres de Markdown literalmente.
-Opinião técnica: resolver isso no frontend foi a melhor opção porque melhora legibilidade sem aumentar dependências do projeto.
 
 ### 10.9 `static/image/`
 
@@ -499,7 +485,6 @@ Depois de montar as mensagens:
 - o backend envia a conversa ao Azure OpenAI;
 - o modelo gera a resposta;
 - o texto é devolvido à interface;
-- o frontend interpreta Markdown básico para melhorar a apresentação visual;
 - a interação é adicionada ao histórico local da sessão.
 
 ---
@@ -515,14 +500,16 @@ AZURE_OPENAI_API_KEY=...
 AZURE_ENDPOINT=https://seu-recurso.cognitiveservices.azure.com
 AZURE_DEPLOYMENT=gpt-5.3-chat
 AZURE_API_VERSION=2025-04-01-preview
+```
+
+Também pode utilizar:
+
+```env
 OPENAI_MODEL=gpt-5.3-chat
-CHATBOT_TEMPERATURE=1
+CHATBOT_TEMPERATURE=0.2
 CHATBOT_MAX_TOKENS=350
 CHATBOT_REASONING_EFFORT=minimal
 ```
-
-Fato: na versão atual, todas essas variáveis devem estar explicitamente definidas no `.env`.
-Inferência: erros de configuração passam a aparecer logo no carregamento, em vez de surgirem de forma tardia durante a execução.
 
 ### 12.2 Problema real de integração
 
@@ -605,26 +592,6 @@ Solução:
 
 Essa melhoria tem impacto direto em acessibilidade e uso real.
 
-### 13.5 Melhoria de leitura das respostas
-
-Foi identificado um problema de experiência do usuário nas respostas exibidas pelo chatbot.
-
-**Sintoma:** elementos como `**negrito**`, `## títulos` e listas apareciam literalmente na interface.
-
-**Causa:** o conteúdo era renderizado como texto puro no navegador.
-
-**Solução:**
-
-- implementação de renderização local de Markdown no JavaScript;
-- escape prévio de HTML para reduzir risco de injeção de conteúdo;
-- estilização específica no CSS para títulos, listas, negrito, itálico e código inline.
-
-Impacto prático:
-
-- melhora a clareza visual das respostas;
-- reduz esforço de leitura do estudante;
-- aumenta a percepção de qualidade e acabamento da interface.
-
 ---
 
 ## 14. Modo quiz
@@ -657,24 +624,9 @@ O sistema valida:
 - existência de chave;
 - existência de endpoint;
 - existência de deployment;
-- existência explícita das variáveis operacionais obrigatórias;
 - formato do endpoint;
 - formato de parâmetros numéricos;
 - validade do `reasoning_effort`.
-
-Na versão atual, o projeto exige definição explícita de:
-
-- `AZURE_OPENAI_API_KEY`;
-- `AZURE_ENDPOINT`;
-- `AZURE_DEPLOYMENT`;
-- `AZURE_API_VERSION`;
-- `OPENAI_MODEL`;
-- `CHATBOT_TEMPERATURE`;
-- `CHATBOT_MAX_TOKENS`;
-- `CHATBOT_REASONING_EFFORT`.
-
-Fato: não há mais defaults silenciosos para essas chaves.
-Opinião técnica: isso reduz ambiguidade, acelera diagnóstico de falha e evita comportamento inesperado em demonstração ou uso real.
 
 ### 15.2 Tratamento de erros de inferência
 
@@ -763,12 +715,6 @@ Opinião técnica: centralizar logo e ícones em `static/image/` foi a solução
 Fato: o projeto passou a incluir docstrings detalhadas nas funções Python e comentários técnicos no JavaScript.
 Opinião técnica: essa decisão é especialmente importante em contexto acadêmico, porque mostra não apenas que o sistema funciona, mas que ele foi construído com preocupação de manutenção, legibilidade e transferência de conhecimento.
 
-#### Decisão 7, interpretar Markdown no frontend
-
-Fato: o modelo frequentemente retorna respostas com negrito, títulos e listas em Markdown.
-Inferência: exibir isso como texto cru prejudica clareza pedagógica e sensação de qualidade.
-Opinião técnica: implementar um parser local, simples e seguro, foi melhor do que adicionar uma dependência externa para um caso controlado e bem delimitado.
-
 ---
 
 ## 17. Problemas encontrados e soluções adotadas
@@ -803,19 +749,13 @@ Opinião técnica: implementar um parser local, simples e seguro, foi melhor do 
 **Causa:** arquivos fora do padrão de `static` do Flask e renderização direta do valor `icon` como texto em vez de `<img>`.  
 **Solução:** reorganização dos assets em `static/image/`, uso de `url_for('static', ...)` no template, tratamento condicional para ícones visuais e ajuste do JavaScript para usar imagem também nos avatares da conversa.
 
-### 17.6 Problema de renderização de Markdown nas respostas
-
-**Sintoma:** marcações como `**`, `##` e listas apareciam literalmente na conversa.  
-**Causa:** as mensagens eram exibidas como texto puro, sem conversão de Markdown para HTML.  
-**Solução:** implementação de renderização local de Markdown com sanitização básica e estilização específica no CSS.
-
 ---
 
 ## 18. Testes e validação
 
 ### 18.1 Testes automatizados
 
-No momento da atualização desta documentação, foram executados **11 testes automatizados**, todos aprovados.
+No momento da documentação, foram executados **10 testes automatizados**, todos aprovados.
 
 Esses testes validam:
 
@@ -835,7 +775,6 @@ Também foram realizadas verificações manuais, incluindo:
 - troca de disciplina;
 - exibição do contexto atual;
 - renderização correta do logo e dos ícones das disciplinas;
-- renderização correta de Markdown nas respostas do chat;
 - envio de perguntas;
 - funcionamento do modo quiz;
 - limpeza de conversa;
@@ -973,7 +912,6 @@ AZURE_ENDPOINT=https://seu-recurso.cognitiveservices.azure.com
 AZURE_DEPLOYMENT=gpt-5.3-chat
 AZURE_API_VERSION=2025-04-01-preview
 OPENAI_MODEL=gpt-5.3-chat
-CHATBOT_TEMPERATURE=1
 CHATBOT_MAX_TOKENS=350
 CHATBOT_REASONING_EFFORT=minimal
 ```
