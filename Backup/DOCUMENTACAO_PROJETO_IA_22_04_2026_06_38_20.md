@@ -5,7 +5,7 @@
 **Disciplina:** Inteligência Artificial
 **Professora:** Eliane Pozzebon
 **Acadêmico:** Felipe Cidade Soares
-**Data:** 22 de abril de 2026  
+**Data:** 21 de abril de 2026
 
 ---
 
@@ -259,18 +259,12 @@ Opinião técnica: essa decisão é superior a manter dois chatbots separados, p
 - HTML5
 - CSS3
 - JavaScript puro
-- Jinja2 para renderização de templates no lado do servidor
 
-### 8.4 Recursos visuais
-
-- imagens PNG para logo e ícones das disciplinas
-- assets servidos pela pasta `static/`
-
-### 8.5 Serviços externos
+### 8.4 Serviços externos
 
 - Azure OpenAI
 
-### 8.6 Testes
+### 8.5 Testes
 
 - unittest
 
@@ -295,12 +289,6 @@ edu-chat/
 |-- static/
 |   |-- css/
 |   |   |-- style.css
-|   |-- image/
-|   |   |-- logo.png
-|   |   |-- matematica.png
-|   |   |-- microscopio.png
-|   |   |-- livro.png
-|   |   |-- einstein.png
 |   |-- js/
 |       |-- app.js
 |-- tests/
@@ -320,7 +308,6 @@ edu-chat/
 - `edu_chat/service.py`: comunicação com o Azure OpenAI;
 - `templates/index.html`: estrutura visual da aplicação web;
 - `static/css/style.css`: identidade visual e responsividade;
-- `static/image/`: assets visuais usados na marca e nos ícones das disciplinas;
 - `static/js/app.js`: comportamento do frontend;
 - `tests/`: testes automatizados do projeto.
 
@@ -406,8 +393,7 @@ Define:
 - layout inspirado na referência enviada;
 - contraste e hierarquia visual;
 - rolagem da sidebar;
-- comportamento responsivo em telas menores;
-- encaixe visual de logos e ícones em formato de imagem.
+- comportamento responsivo em telas menores.
 
 ### 10.8 `static/js/app.js`
 
@@ -420,24 +406,7 @@ Controla:
 - renderização dinâmica das mensagens;
 - gerenciamento do modo quiz.
 
-Também passou a tratar dois tipos de ícone:
-
-- ícones textuais, como símbolos ou emoji;
-- ícones por imagem, carregados da pasta `static/image/`.
-
-### 10.9 `static/image/`
-
-Esta pasta concentra os assets visuais do projeto, incluindo:
-
-- logo principal da aplicação;
-- ícone de Matemática;
-- ícone de Biologia;
-- ícone de História;
-- ícone de Física.
-
-Essa organização foi necessária para seguir o padrão de arquivos estáticos do Flask e evitar erro de carregamento de imagem.
-
-### 10.10 Testes automatizados
+### 10.9 Testes automatizados
 
 Os testes cobrem:
 
@@ -567,20 +536,7 @@ O layout foi inspirado em uma interface escura, tecnológica e organizada, com f
 - sugestões iniciais de perguntas;
 - composer de envio com suporte a `Enter` e `Shift+Enter`.
 
-### 13.3 Sistema visual das disciplinas
-
-Além do texto, a interface passou a usar identidade visual própria para as matérias:
-
-- Matemática com ícone ilustrado específico;
-- Biologia com microscópio;
-- História com livro;
-- Física com imagem temática.
-
-Fato: inicialmente a interface misturava símbolos de texto e tentativas de caminho de imagem renderizadas como string.
-Fato: o comportamento foi corrigido com renderização condicional no template e no JavaScript.
-Opinião técnica: essa mudança melhorou consistência visual, reconhecimento rápido das disciplinas e sensação de acabamento profissional.
-
-### 13.4 Correção de usabilidade realizada
+### 13.3 Correção de usabilidade realizada
 
 Foi identificado que, em algumas resoluções de tela, a lista de disciplinas ficava parcialmente cortada.
 
@@ -654,18 +610,9 @@ Boas práticas aplicadas:
 
 ### 15.5 Manutenção
 
-Fato: a lógica de negócio está separada da interface.  
-Inferência: isso facilita troca futura de frontend, modelo ou estratégia de resposta.  
+Fato: a lógica de negócio está separada da interface.
+Inferência: isso facilita troca futura de frontend, modelo ou estratégia de resposta.
 Opinião técnica: esse é um ponto forte do projeto, porque melhora sustentabilidade da solução ao longo do tempo.
-
-### 15.6 Documentação interna do código
-
-O projeto também foi fortalecido no aspecto de legibilidade técnica.
-
-Fato: todas as funções Python ativas do projeto receberam docstrings detalhadas.
-Fato: as funções principais do JavaScript da interface receberam comentários explicativos sobre intenção, parâmetros e fluxo.
-Inferência: isso reduz curva de aprendizado para manutenção e melhora a qualidade da entrega acadêmica.
-Opinião técnica: documentar o código-fonte não é apenas estética. Isso reduz risco operacional, facilita revisão pela professora e aumenta a clareza de decisão técnica.
 
 ---
 
@@ -701,19 +648,8 @@ Opinião técnica: limitar o histórico recente é uma decisão equilibrada para
 
 #### Decisão 4, limpar conversa ao trocar disciplina
 
-Fato: manter histórico de uma disciplina ao migrar para outra pode contaminar contexto.  
+Fato: manter histórico de uma disciplina ao migrar para outra pode contaminar contexto.
 Opinião técnica: reiniciar a conversa foi a escolha correta para preservar coerência da resposta.
-
-#### Decisão 5, usar assets visuais em `static/`
-
-Fato: imagens fora da pasta `static/` não eram servidas automaticamente pelo Flask.
-Inferência: isso gerava ícone quebrado ou tentativa de renderização de caminho como texto.
-Opinião técnica: centralizar logo e ícones em `static/image/` foi a solução correta, porque segue a convenção do framework, simplifica caminhos e reduz erro de front-end.
-
-#### Decisão 6, documentar profundamente o código
-
-Fato: o projeto passou a incluir docstrings detalhadas nas funções Python e comentários técnicos no JavaScript.
-Opinião técnica: essa decisão é especialmente importante em contexto acadêmico, porque mostra não apenas que o sistema funciona, mas que ele foi construído com preocupação de manutenção, legibilidade e transferência de conhecimento.
 
 ---
 
@@ -739,15 +675,9 @@ Opinião técnica: essa decisão é especialmente importante em contexto acadêm
 
 ### 17.4 Problema de exibição em terminal
 
-**Sintoma:** erro de encoding ao imprimir caracteres Unicode.  
-**Causa:** limitação de encoding do terminal Windows.  
+**Sintoma:** erro de encoding ao imprimir caracteres Unicode.
+**Causa:** limitação de encoding do terminal Windows.
 **Solução:** validação com saída em `unicode_escape` durante o teste técnico.
-
-### 17.5 Problema de renderização de imagens na interface
-
-**Sintoma:** logo quebrado e caminho de imagem aparecendo como texto dentro das disciplinas.  
-**Causa:** arquivos fora do padrão de `static` do Flask e renderização direta do valor `icon` como texto em vez de `<img>`.  
-**Solução:** reorganização dos assets em `static/image/`, uso de `url_for('static', ...)` no template, tratamento condicional para ícones visuais e ajuste do JavaScript para usar imagem também nos avatares da conversa.
 
 ---
 
@@ -774,7 +704,6 @@ Também foram realizadas verificações manuais, incluindo:
 - carregamento da interface web;
 - troca de disciplina;
 - exibição do contexto atual;
-- renderização correta do logo e dos ícones das disciplinas;
 - envio de perguntas;
 - funcionamento do modo quiz;
 - limpeza de conversa;
@@ -882,7 +811,6 @@ Motivo:
 - Python 3.12 ou superior
 - acesso a um recurso Azure OpenAI configurado
 - deployment de modelo disponível
-- arquivos de imagem presentes em `static/image/`
 
 ### 22.2 Criação do ambiente virtual
 
@@ -928,11 +856,6 @@ Depois, acessar:
 http://localhost:5000
 ```
 
-Observação importante:
-
-- o Flask serve automaticamente os assets da pasta `static/`;
-- por isso, logos e ícones do projeto devem permanecer em `static/image/`.
-
 ### 22.7 Execução da interface terminal
 
 ```powershell
@@ -957,8 +880,6 @@ O projeto atingiu com sucesso o objetivo de construir um chatbot educacional com
 - validação real com Azure OpenAI;
 - tratamento de problemas de compatibilidade;
 - testes automatizados;
-- identidade visual com ícones por disciplina;
-- documentação interna detalhada do código;
 - documentação estruturada.
 
 Mais importante do que simplesmente “usar IA”, este projeto demonstra entendimento de como transformar um modelo de linguagem em um sistema utilizável, confiável e orientado a um propósito educacional.
