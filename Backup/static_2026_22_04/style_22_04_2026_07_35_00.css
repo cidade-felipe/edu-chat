@@ -555,76 +555,9 @@ body::before {
     border-radius: 20px;
     padding: 16px 18px;
     line-height: 1.7;
+    white-space: pre-wrap;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.message-bubble > :first-child {
-    margin-top: 0;
-}
-
-.message-bubble > :last-child {
-    margin-bottom: 0;
-}
-
-.message-bubble p,
-.message-bubble ul,
-.message-bubble ol,
-.message-bubble pre,
-.message-bubble blockquote {
-    margin: 0 0 1rem;
-}
-
-.message-bubble h1,
-.message-bubble h2,
-.message-bubble h3,
-.message-bubble h4,
-.message-bubble h5,
-.message-bubble h6 {
-    margin: 0 0 0.9rem;
-    line-height: 1.25;
-    font-family: var(--heading-font);
-    color: #f5fbff;
-}
-
-.message-bubble h1 {
-    font-size: 1.55rem;
-}
-
-.message-bubble h2 {
-    font-size: 1.35rem;
-}
-
-.message-bubble h3 {
-    font-size: 1.18rem;
-}
-
-.message-bubble ul,
-.message-bubble ol {
-    padding-left: 1.4rem;
-}
-
-.message-bubble li + li {
-    margin-top: 0.4rem;
-}
-
-.message-bubble strong {
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.message-bubble em {
-    color: #d8efff;
-}
-
-.message-bubble code {
-    padding: 0.15rem 0.45rem;
-    border-radius: 8px;
-    background: rgba(24, 210, 255, 0.12);
-    border: 1px solid rgba(24, 210, 255, 0.16);
-    color: #9ef4ff;
-    font-size: 0.95em;
-    font-family: Consolas, "Courier New", monospace;
 }
 
 .message[data-role="user"] .message-bubble {
