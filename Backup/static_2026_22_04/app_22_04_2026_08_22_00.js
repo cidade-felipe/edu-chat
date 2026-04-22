@@ -268,9 +268,7 @@ function updateSubjectState() {
     elements.heroTitle.textContent = subject.hero_title;
     elements.heroDescription.textContent = subject.hero_description;
     elements.modeBadge.textContent = state.quizMode ? "Modo quiz" : "Modo explicação";
-    elements.messageInput.placeholder = state.quizMode
-        ? `Peça um quiz de ${subject.label.toLowerCase()} ou responda à próxima pergunta...`
-        : `Pergunte algo sobre ${subject.label.toLowerCase()}...`;
+    elements.messageInput.placeholder = `Pergunte algo sobre ${subject.label.toLowerCase()}...`;
 
     elements.subjectButtons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.subject === subject.key);
@@ -290,11 +288,8 @@ function updateSubjectState() {
  */
 function renderSuggestionChips(subject) {
     elements.suggestionList.innerHTML = "";
-    const questions = state.quizMode
-        ? subject.quiz_starter_questions || subject.starter_questions
-        : subject.starter_questions;
 
-    questions.forEach((question) => {
+    subject.starter_questions.forEach((question) => {
         const chip = document.createElement("button");
         chip.type = "button";
         chip.className = "suggestion-chip";

@@ -13,7 +13,6 @@ class Subject:
     hero_title: str
     hero_description: str
     starter_questions: tuple[str, ...]
-    quiz_starter_questions: tuple[str, ...]
 
 
 SUBJECTS: dict[str, Subject] = {
@@ -33,11 +32,6 @@ SUBJECTS: dict[str, Subject] = {
             "Como resolver regra de três passo a passo?",
             "Qual a diferença entre média e mediana?",
         ),
-        quiz_starter_questions=(
-            "Um quiz de função afim com 3 perguntas.",
-            "Teste sobre regra de três, uma questão por vez.",
-            "Perguntas sobre média e mediana.",
-        ),
     ),
     "biologia": Subject(
         key="biologia",
@@ -54,11 +48,6 @@ SUBJECTS: dict[str, Subject] = {
             "O que é mitose e para que ela serve?",
             "Explique cadeia alimentar com um exemplo real.",
             "Qual a diferença entre DNA e RNA?",
-        ),
-        quiz_starter_questions=(
-            "Um quiz sobre mitose, uma pergunta por vez.",
-            "Teste sobre cadeia alimentar.",
-            "Perguntas sobre DNA e RNA.",
         ),
     ),
     "historia": Subject(
@@ -77,11 +66,6 @@ SUBJECTS: dict[str, Subject] = {
             "Resuma a Guerra Fria de forma simples.",
             "Resuma a Era Vargas objetivamente.",
         ),
-        quiz_starter_questions=(
-            "Um quiz sobre Revolução Francesa.",
-            "Teste sobre Guerra Fria com perguntas curtas.",
-            "Perguntas sobre a Era Vargas.",
-        ),
     ),
     "fisica": Subject(
         key="fisica",
@@ -98,11 +82,6 @@ SUBJECTS: dict[str, Subject] = {
             "O que é velocidade média?",
             "Explique a segunda lei de Newton com exemplo.",
             "Como funciona a conservação de energia?",
-        ),
-        quiz_starter_questions=(
-            "Um quiz sobre velocidade média.",
-            "Teste sobre a segunda lei de Newton.",
-            "Perguntas sobre conservação de energia.",
         ),
     ),
 }

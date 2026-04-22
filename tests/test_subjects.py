@@ -1,6 +1,6 @@
 import unittest
 
-from edu_chat.subjects import DEFAULT_SUBJECT, SUBJECTS, build_system_prompt
+from edu_chat.subjects import DEFAULT_SUBJECT, SUBJECTS, build_system_prompt, list_subjects
 
 
 class SubjectsTestCase(unittest.TestCase):
@@ -33,6 +33,26 @@ class SubjectsTestCase(unittest.TestCase):
 
         self.assertIn("linguagem simples", prompt)
         self.assertIn("português do Brasil", prompt)
+
+    def test_subjects_expose_quiz_starter_questions(self) -> None:
+        """Garante que cada disciplina oferece exemplos coerentes para modo quiz.
+
+        O frontend alterna dinamicamente entre sugestões de explicação e de
+        quiz. Este teste protege contra regressões em que uma disciplina deixe
+        de expor exemplos específicos para avaliação guiada.
+        """
+        serialized_subjects = list_subjects()
+
+        for subject in serialized_subjects:
+            self.assertIn("quiz_starter_questions", subject)
+            self.assertGreaterEqual(len(subject["quiz_starter_questions"]), 1)
+            self.assertTrue(
+                any(
+                    keyword in question.lower()
+                    for question in subject["quiz_starter_questions"]
+                    for keyword in ("quiz", "teste", "perguntas", "responder")
+                )
+            )
 
 
 if __name__ == "__main__":
