@@ -25,22 +25,6 @@ class EducationalChatbot:
         carregar tudo automaticamente do ambiente. Em seguida, monta o cliente
         AzureOpenAI com os parâmetros necessários para o deployment atual.
 
-        Variáveis de configuração mais importantes para esta etapa:
-
-        - ``AZURE_OPENAI_API_KEY``:
-          autentica o cliente junto ao Azure OpenAI.
-        - ``AZURE_ENDPOINT``:
-          define o recurso Azure que receberá a chamada.
-        - ``AZURE_DEPLOYMENT``:
-          indica qual deployment será usado no chat.
-        - ``AZURE_API_VERSION``:
-          controla o contrato de API esperado pelo SDK.
-
-        Em termos práticos, este construtor é o ponto em que problemas de
-        configuração deixam de ser apenas teóricos e passam a impedir o uso real
-        do chatbot. Por isso, concentrar aqui uma instância única do cliente
-        reduz custo de criação repetida e facilita troubleshooting.
-
         Args:
             settings: configuração consolidada do projeto. Quando omitida, a
             função ``load_settings`` é chamada para carregar os valores do
@@ -68,22 +52,6 @@ class EducationalChatbot:
         a disciplina, monta o prompt de sistema, normaliza o histórico, envia a
         chamada ao modelo e valida a resposta retornada. Ele também transforma
         falhas técnicas do SDK em mensagens de domínio mais compreensíveis.
-
-        Essa função é o principal ponto de negócio do projeto. Ela conecta:
-
-        - contexto pedagógico, ao escolher a disciplina correta;
-        - contexto conversacional, ao reutilizar histórico recente;
-        - contexto operacional, ao aplicar a estratégia de chamada adequada ao
-          deployment configurado.
-
-        Variáveis com maior impacto indireto nesta rotina:
-
-        - ``CHATBOT_MAX_TOKENS``:
-          influencia o tamanho potencial da resposta.
-        - ``CHATBOT_TEMPERATURE``:
-          afeta variação em estratégias clássicas.
-        - ``CHATBOT_REASONING_EFFORT``:
-          afeta profundidade e custo em modelos reasoning compatíveis.
 
         Args:
             history: sequência com mensagens anteriores da conversa atual.
@@ -154,23 +122,6 @@ class EducationalChatbot:
         Esse fallback reduz quebras por incompatibilidade de modelo sem exigir
         que o restante da aplicação conheça detalhes de cada deployment.
 
-        Relação direta com as variáveis do `.env`:
-
-        - ``AZURE_DEPLOYMENT``:
-          identifica o deployment consultado em todas as estratégias.
-        - ``CHATBOT_MAX_TOKENS``:
-          alimenta ``max_completion_tokens`` ou ``max_tokens``.
-        - ``CHATBOT_REASONING_EFFORT``:
-          é usado na primeira tentativa para modelos reasoning.
-        - ``CHATBOT_TEMPERATURE``:
-          é usado na estratégia clássica de fallback.
-
-        Essa abordagem foi adotada porque diferentes deployments do Azure podem
-        aceitar contratos de requisição distintos. Em vez de empurrar essa
-        complexidade para a interface ou para o arquivo de configuração, o
-        projeto encapsula a compatibilidade aqui, onde o custo de manutenção é
-        menor e o ganho de robustez é maior.
-
         Args:
             messages: lista completa de mensagens que será enviada ao modelo.
 
@@ -224,14 +175,6 @@ class EducationalChatbot:
         conteúdos vazios ou papéis não suportados. Além disso, limita a
         quantidade de itens enviados para reduzir custo e latência.
 
-        O limite aplicado aqui é uma decisão de produto e de operação ao mesmo
-        tempo. Em um chatbot educacional, o contexto recente costuma ser mais
-        importante do que uma memória longa. Isso permite:
-
-        - controlar custo por requisição;
-        - reduzir latência;
-        - evitar que conversas antigas contaminem respostas atuais.
-
         Args:
             history: sequência arbitrária de itens que representam a conversa.
 
@@ -262,12 +205,6 @@ class EducationalChatbot:
         negócio. Este método separa especificamente os erros ligados a
         parâmetros não suportados, permitindo que o sistema tente outra forma
         de chamada somente quando isso faz sentido.
-
-        Essa distinção é importante porque um fallback indevido pode mascarar
-        problemas reais de configuração ou de payload. O objetivo não é
-        "tentar qualquer coisa até funcionar", e sim aplicar resiliência apenas
-        quando o erro sugere incompatibilidade legítima entre modelo e
-        parâmetros.
 
         Args:
             exc: exceção original lançada pelo SDK ao receber HTTP 400.

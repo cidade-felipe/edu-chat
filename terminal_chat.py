@@ -20,7 +20,7 @@ def choose_subject() -> str:
         str: chave interna da disciplina escolhida, usada depois na montagem do
         prompt e na chamada ao modelo.
     """
-    subjects = list_subjects()
+    subjects = list_subjects() # subjects é uma lista de dicionários com as chaves "key", "label" e "short_description"
     print("Escolha a disciplina do chatbot:")
     for index, subject in enumerate(subjects, start=1):
         print(f"{index}. {subject['label']} - {subject['short_description']}")
@@ -31,7 +31,7 @@ def choose_subject() -> str:
             print("Digite apenas o número correspondente à disciplina.")
             continue
 
-        position = int(choice) - 1
+        position = int(choice) - 1 # Ajusta para índice zero-based
         if 0 <= position < len(subjects):
             return subjects[position]["key"]
 
@@ -78,7 +78,7 @@ def main() -> None:
 
     subject_key = choose_subject()
     quiz_mode = choose_quiz_mode()
-    history: list[dict[str, str]] = []
+    history: list[dict[str, str]] = [] # Mantém o histórico local da conversa para contexto, mas não é persistente entre execuções
 
     print("\nChat iniciado. Digite sua pergunta ou use 'sair' para encerrar.\n")
 
@@ -103,8 +103,8 @@ def main() -> None:
             print(f"\nTutor: {exc}\n")
             continue
 
-        history.append({"role": "user", "content": user_message})
-        history.append({"role": "assistant", "content": answer})
+        history.append({"role": "user", "content": user_message}) # Role "user" para mensagens do usuário e "assistant" para respostas do chatbot, seguindo convenção comum de sistemas de diálogo
+        history.append({"role": "assistant", "content": answer}) # Adiciona a resposta do chatbot ao histórico para manter o contexto em mensagens futuras, mesmo que o histórico não seja persistente entre execuções
         print(f"\nTutor: {answer}\n")
 
 

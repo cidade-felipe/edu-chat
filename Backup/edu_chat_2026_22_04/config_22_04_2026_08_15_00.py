@@ -16,64 +16,6 @@ class ConfigurationError(RuntimeError):
 
 @dataclass(frozen=True)
 class Settings:
-    """Representa a configuração consolidada e imutável do projeto.
-
-    Esta estrutura concentra todos os parâmetros que influenciam o
-    comportamento do chatbot em tempo de execução. O uso de uma dataclass
-    imutável reduz risco de alteração acidental depois do carregamento inicial,
-    o que é importante porque esses valores afetam autenticação, roteamento de
-    chamadas para o Azure, compatibilidade de parâmetros e até a forma como a
-    interface apresenta informações ao usuário.
-
-    Principais variáveis e seu impacto prático:
-
-    - ``AZURE_OPENAI_API_KEY``:
-      chave usada para autenticar cada requisição no recurso Azure OpenAI.
-      Se estiver ausente ou incorreta, o backend não conseguirá consultar o
-      modelo. Em ambiente real, isso equivale a indisponibilidade total do
-      serviço de IA.
-
-    - ``AZURE_ENDPOINT``:
-      URL base do recurso Azure, por exemplo
-      ``https://seu-recurso.cognitiveservices.azure.com``. Ela define para onde
-      as chamadas são enviadas. Um endpoint incorreto costuma causar erros como
-      ``404 Resource not found`` ou falha de conexão.
-
-    - ``AZURE_DEPLOYMENT``:
-      nome exato do deployment publicado no Azure. Esse valor não é apenas um
-      rótulo, ele determina qual deployment receberá a requisição. Se houver
-      divergência de nome, a aplicação pode falhar mesmo com chave e endpoint
-      corretos.
-
-    - ``AZURE_API_VERSION``:
-      versão da API usada pelo SDK. Ela afeta compatibilidade de payload,
-      parâmetros aceitos e comportamento do endpoint. Uma versão incompatível
-      pode gerar falhas mesmo quando o restante da configuração está correto.
-
-    - ``OPENAI_MODEL``:
-      rótulo de modelo exibido na interface e na documentação operacional.
-      Embora não seja usado como destino efetivo da chamada principal, ele é
-      importante para rastreabilidade, entendimento do ambiente e clareza da
-      entrega acadêmica.
-
-    - ``CHATBOT_TEMPERATURE``:
-      controla o grau de variação das respostas em modelos clássicos. Valores
-      menores tendem a gerar explicações mais previsíveis e consistentes,
-      enquanto valores maiores podem ampliar criatividade, mas também elevar
-      variabilidade e risco de resposta menos objetiva.
-
-    - ``CHATBOT_MAX_TOKENS``:
-      define o teto de tamanho da resposta. Esse parâmetro impacta custo,
-      latência e profundidade da explicação. Limites muito baixos podem truncar
-      respostas úteis, enquanto limites altos podem aumentar tempo e consumo de
-      API sem ganho proporcional.
-
-    - ``CHATBOT_REASONING_EFFORT``:
-      ajusta o nível de esforço para deployments compatíveis com modelos
-      reasoning. Ele influencia custo, latência e profundidade do processo de
-      raciocínio do modelo. Para um chatbot educacional interativo, costuma ser
-      um equilíbrio importante entre qualidade da resposta e rapidez.
-    """
     azure_api_key: str # chave de API para autenticação com Azure OpenAI
     azure_endpoint: str # URL base do recurso Azure OpenAI, sem caminhos extras
     azure_deployment: str # nome do deployment publicado no Azure para este chatbot
@@ -90,13 +32,6 @@ def _read_required(name: str) -> str:
     A função centraliza a política atual do projeto: nenhuma variável usada na
     configuração pode depender de valor padrão implícito. Se o campo não estiver
     presente ou vier vazio, a aplicação deve falhar cedo com mensagem clara.
-
-    Essa decisão melhora previsibilidade operacional. Na prática, ela evita
-    um cenário comum em integrações com serviços externos: o sistema sobe com
-    defaults invisíveis, parece funcional à primeira vista, mas quebra depois
-    durante uma chamada real. Ao falhar cedo, o projeto reduz tempo de
-    diagnóstico, evita comportamento ambíguo e deixa explícito o contrato de
-    configuração exigido pelo `.env`.
 
     Args:
         name: nome da variável obrigatória a ser consultada.
@@ -122,14 +57,6 @@ def _read_float(name: str) -> float:
     Essa função é usada em parâmetros numéricos cujo valor precisa estar
     explicitamente definido no `.env`, como temperatura. A ausência do campo ou
     um formato inválido interrompem a inicialização do sistema.
-
-    No contexto deste projeto, o principal uso é ``CHATBOT_TEMPERATURE``.
-    Embora esse valor nem sempre seja aplicado a todos os tipos de modelo,
-    mantê-lo explicitamente documentado e validado ajuda a:
-
-    - tornar a configuração mais auditável;
-    - evitar divergência entre ambientes;
-    - deixar claro qual comportamento é esperado para deployments clássicos.
 
     Args:
         name: nome da variável de ambiente a ser consultada.
@@ -159,14 +86,6 @@ def _read_int(name: str) -> int:
     projeto, ela não aplica fallback, porque o requisito atual exige que todas
     as variáveis estejam explicitamente definidas no `.env`.
 
-    O principal caso de uso aqui é ``CHATBOT_MAX_TOKENS``. Esse parâmetro tem
-    impacto direto em custo e tempo de resposta. Em termos práticos:
-
-    - valores menores tendem a reduzir latência e consumo;
-    - valores maiores permitem explicações mais longas;
-    - um valor incorreto pode degradar experiência do usuário ou elevar custo
-      de inferência sem necessidade.
-
     Args:
         name: nome da variável de ambiente que será lida.
 
@@ -194,14 +113,6 @@ def _read_reasoning_effort(name: str) -> str:
     esforço, e valores inválidos podem gerar falha de requisição. Esta função
     centraliza a validação dessas opções e reforça a exigência de configuração
     explícita do projeto.
-
-    No projeto, essa variável se torna especialmente relevante quando o
-    deployment escolhido usa estratégias modernas de raciocínio. O valor
-    configurado afeta três dimensões importantes:
-
-    - profundidade potencial da resposta;
-    - latência percebida pelo usuário;
-    - custo operacional da interação.
 
     Args:
         name: nome da variável de ambiente que armazena o esforço desejado.
@@ -233,12 +144,6 @@ def _normalize_azure_endpoint(raw_endpoint: str) -> tuple[str, str | None]:
     versão da API. O SDK, porém, espera apenas a base do recurso. Esta função
     corrige esse cenário automaticamente, reduzindo falhas de configuração e
     melhorando a robustez do projeto.
-
-    Esse comportamento é importante porque o erro causado por endpoint mal
-    formatado costuma aparecer apenas na hora da inferência, como um ``404``
-    que nem sempre deixa evidente a origem do problema. Ao normalizar esse
-    valor cedo, o projeto reduz fricção de setup e melhora a confiabilidade do
-    ambiente de demonstração e desenvolvimento.
 
     Args:
         raw_endpoint: valor bruto informado em ambiente, possivelmente contendo
@@ -278,41 +183,6 @@ def load_settings() -> Settings:
 
     A abordagem centralizada reduz risco de inconsistência entre módulos,
     facilita testes e simplifica o troubleshooting de integração com Azure.
-
-    Ordem lógica do carregamento:
-
-    1. lê segredos e identificadores críticos de infraestrutura;
-    2. normaliza e valida o endpoint do Azure;
-    3. verifica coerência entre endpoint e ``AZURE_API_VERSION``;
-    4. carrega parâmetros operacionais do chatbot;
-    5. devolve uma estrutura única, imutável e pronta para ser consumida pelos
-       demais módulos.
-
-    Variáveis obrigatórias tratadas por esta função:
-
-    - ``AZURE_OPENAI_API_KEY``:
-      autenticação com o serviço Azure OpenAI.
-    - ``AZURE_ENDPOINT``:
-      URL base do recurso Azure que receberá as requisições.
-    - ``AZURE_DEPLOYMENT``:
-      deployment efetivamente consultado pelo SDK.
-    - ``AZURE_API_VERSION``:
-      versão da API que define compatibilidade de contrato.
-    - ``OPENAI_MODEL``:
-      rótulo usado para exibição e rastreabilidade do ambiente.
-    - ``CHATBOT_TEMPERATURE``:
-      ajuste de variabilidade para estratégias clássicas.
-    - ``CHATBOT_MAX_TOKENS``:
-      limite de tamanho da resposta gerada.
-    - ``CHATBOT_REASONING_EFFORT``:
-      nível de esforço usado em estratégias reasoning compatíveis.
-
-    Motivo para não usar defaults:
-
-    - deixa o contrato do `.env` explícito;
-    - evita comportamento silenciosamente divergente entre máquinas;
-    - acelera diagnóstico de falhas;
-    - melhora qualidade acadêmica e operacional da entrega.
 
     Returns:
         Settings: objeto imutável com todos os parâmetros necessários para o

@@ -28,28 +28,6 @@ def create_app() -> Flask:
     1. facilita testes automatizados, porque o app pode ser criado sob demanda;
     2. reduz acoplamento entre configuração global, rotas e ambiente de execução.
 
-    Do ponto de vista arquitetural, esta função é a fronteira entre a camada
-    HTTP e o núcleo de negócio do projeto. Ela não decide como o modelo pensa,
-    mas decide como a aplicação:
-
-    - recebe requisições;
-    - devolve erros compreensíveis;
-    - expõe estado mínimo para a interface;
-    - reaproveita uma única instância do serviço principal por processo.
-
-    Variáveis de ambiente com reflexo visível nesta camada:
-
-    - ``FLASK_DEBUG``:
-      altera o modo de execução do servidor local.
-    - ``FLASK_HTTPS``:
-      habilita ou não HTTPS local no bloco de bootstrap.
-    - ``PORT``:
-      define a porta exposta pelo servidor durante a execução manual.
-
-    Embora a leitura principal do `.env` esteja em ``load_settings``, a camada
-    web também depende dessas variáveis auxiliares para experiência de
-    desenvolvimento e demonstração.
-
     Returns:
         Flask: instância pronta para servir a interface web e a API interna
         usada pelo frontend.
@@ -183,15 +161,6 @@ def _is_truthy_env(value: str | None) -> bool:
     formatos variados, por exemplo `1`, `true`, `yes` ou `on`, esta função
     centraliza a normalização e evita lógica duplicada no bloco de execução.
 
-    Ela é usada principalmente para interpretar:
-
-    - ``FLASK_DEBUG``, que ativa recursos de desenvolvimento;
-    - ``FLASK_HTTPS``, que liga o servidor local com TLS.
-
-    Centralizar essa conversão reduz risco de divergência semântica, por
-    exemplo quando uma variável aceita `1` em um ponto do código e exige
-    `true` em outro.
-
     Args:
         value: Valor bruto lido da variável de ambiente.
 
@@ -210,18 +179,6 @@ def _resolve_ssl_context(https_enabled: bool) -> str | None:
     biblioteca `cryptography`. Em vez de deixar a aplicação quebrar com um
     traceback genérico, a função valida essa dependência antes de subir o
     servidor e devolve uma mensagem clara de correção.
-
-    Relação com as variáveis principais de execução local:
-
-    - ``FLASK_HTTPS``:
-      quando habilitada, esta função tenta devolver `"adhoc"`.
-    - ``FLASK_DEBUG``:
-      costuma ser usada em conjunto durante desenvolvimento, embora não seja
-      obrigatória para o HTTPS.
-
-    Em termos práticos, este método reduz risco operacional em apresentação,
-    aula ou teste manual, porque transforma uma falha técnica pouco amigável em
-    um erro acionável.
 
     Args:
         https_enabled: Indica se o usuário solicitou execução local em HTTPS.
