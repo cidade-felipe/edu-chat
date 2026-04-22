@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib.util
 import logging
 import os
 from functools import lru_cache
@@ -171,39 +170,6 @@ def _is_truthy_env(value: str | None) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _resolve_ssl_context(https_enabled: bool) -> str | None:
-    """Resolve a configuração SSL usada pelo servidor Flask local.
-
-    Em desenvolvimento, o projeto usa certificados ad-hoc do Werkzeug para
-    permitir testes rápidos com HTTPS. Essa funcionalidade depende da
-    biblioteca `cryptography`. Em vez de deixar a aplicação quebrar com um
-    traceback genérico, a função valida essa dependência antes de subir o
-    servidor e devolve uma mensagem clara de correção.
-
-    Args:
-        https_enabled: Indica se o usuário solicitou execução local em HTTPS.
-
-    Returns:
-        str | None: `"adhoc"` quando o HTTPS estiver habilitado e a
-        dependência necessária estiver disponível, ou `None` para manter HTTP.
-
-    Raises:
-        RuntimeError: Quando o HTTPS foi solicitado, mas `cryptography` não
-        está instalada no ambiente virtual.
-    """
-    if not https_enabled:
-        return None
-
-    if importlib.util.find_spec("cryptography") is None:
-        raise RuntimeError(
-            "HTTPS local com FLASK_HTTPS=1 requer a biblioteca 'cryptography'. "
-            "Instale as dependências com 'python -m pip install -r requirements.txt' "
-            "ou execute 'python -m pip install cryptography'."
-        )
-
-    return "adhoc"
-
-
 if __name__ == "__main__":
     https_enabled = _is_truthy_env(os.getenv("FLASK_HTTPS"))
 
@@ -211,5 +177,5 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.getenv("PORT", "5000")),
         debug=_is_truthy_env(os.getenv("FLASK_DEBUG", "1")),
-        ssl_context=_resolve_ssl_context(https_enabled),
+        ssl_context="adhoc" if https_enabled else None,
     )

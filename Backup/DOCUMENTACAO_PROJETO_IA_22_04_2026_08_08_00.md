@@ -253,7 +253,6 @@ Opinião técnica: essa decisão é superior a manter dois chatbots separados, p
 - Flask
 - OpenAI Python SDK com suporte a Azure OpenAI
 - python-dotenv
-- cryptography, usada para HTTPS local com certificado ad-hoc no ambiente de desenvolvimento
 
 ### 8.3 Frontend
 
@@ -376,14 +375,7 @@ Responsável pela aplicação Flask e pelas rotas:
 
 - `GET /` para carregar a interface;
 - `GET /health` para verificação simples de saúde;
-- `POST /api/chat` para processar mensagens do usuário;
-- ativação opcional de HTTPS local por variável de ambiente.
-
-Na versão atual, o arquivo também passou a:
-
-- interpretar flags booleanas do ambiente de forma padronizada;
-- habilitar `ssl_context="adhoc"` quando `FLASK_HTTPS=1`;
-- validar previamente a presença da biblioteca `cryptography` para evitar erro obscuro ao subir o servidor.
+- `POST /api/chat` para processar mensagens do usuário.
 
 ### 10.5 `terminal_chat.py`
 
@@ -531,20 +523,6 @@ CHATBOT_REASONING_EFFORT=minimal
 
 Fato: na versão atual, todas essas variáveis devem estar explicitamente definidas no `.env`.
 Inferência: erros de configuração passam a aparecer logo no carregamento, em vez de surgirem de forma tardia durante a execução.
-
-Além das variáveis da integração com IA, o projeto também pode usar:
-
-```env
-FLASK_DEBUG=1
-FLASK_HTTPS=1
-PORT=5000
-```
-
-Uso:
-
-- `FLASK_DEBUG`: ativa o modo de desenvolvimento do Flask;
-- `FLASK_HTTPS`: habilita HTTPS local com certificado autoassinado;
-- `PORT`: permite trocar a porta padrão do servidor.
 
 ### 12.2 Problema real de integração
 
@@ -722,16 +700,6 @@ Boas práticas aplicadas:
 - configuração sensível fica desacoplada da lógica;
 - o `.gitignore` evita versionamento de ambientes e `.env`.
 
-### 15.4.1 HTTPS local em desenvolvimento
-
-O projeto passou a suportar HTTPS opcional para testes locais.
-
-Fato: quando `FLASK_HTTPS=1`, o Flask sobe com `ssl_context="adhoc"`.
-Fato: esse modo depende da biblioteca `cryptography`.
-Fato: o certificado é autoassinado, portanto o navegador exibe aviso de segurança.
-Inferência: esse recurso é útil para validar comportamento sob HTTPS, por exemplo em cenários com APIs do navegador que exigem contexto seguro.
-Opinião técnica: para desenvolvimento local, essa solução tem ótima relação entre simplicidade e valor prático. Para produção, o ideal continua sendo usar proxy reverso ou infraestrutura dedicada de TLS.
-
 ### 15.5 Manutenção
 
 Fato: a lógica de negócio está separada da interface.  
@@ -801,12 +769,6 @@ Fato: o modelo frequentemente retorna respostas com negrito, títulos e listas e
 Inferência: exibir isso como texto cru prejudica clareza pedagógica e sensação de qualidade.
 Opinião técnica: implementar um parser local, simples e seguro, foi melhor do que adicionar uma dependência externa para um caso controlado e bem delimitado.
 
-#### Decisão 8, adicionar HTTPS local opcional
-
-Fato: alguns cenários de teste funcionam melhor em contexto seguro, com `https://`.
-Inferência: depender apenas de HTTP local limita validações futuras e pode impedir testes de recursos do navegador mais restritivos.
-Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, porque mantém simplicidade no fluxo padrão e adiciona segurança sob demanda sem impor complexidade a todos os usos do projeto.
-
 ---
 
 ## 17. Problemas encontrados e soluções adotadas
@@ -846,12 +808,6 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 **Sintoma:** marcações como `**`, `##` e listas apareciam literalmente na conversa.  
 **Causa:** as mensagens eram exibidas como texto puro, sem conversão de Markdown para HTML.  
 **Solução:** implementação de renderização local de Markdown com sanitização básica e estilização específica no CSS.
-
-### 17.7 Problema de HTTPS local com certificado ad-hoc
-
-**Sintoma:** ao ativar HTTPS local, o Flask encerrava a execução com erro relacionado a certificado ad-hoc.  
-**Causa:** a biblioteca `cryptography` não estava instalada no ambiente virtual.  
-**Solução:** inclusão de `cryptography` no `requirements.txt` e validação explícita no `app.py` para exibir mensagem clara quando a dependência estiver ausente.
 
 ---
 
@@ -988,7 +944,6 @@ Motivo:
 - acesso a um recurso Azure OpenAI configurado
 - deployment de modelo disponível
 - arquivos de imagem presentes em `static/image/`
-- dependências instaladas, incluindo `cryptography` quando houver uso de HTTPS local
 
 ### 22.2 Criação do ambiente virtual
 
@@ -1021,8 +976,6 @@ OPENAI_MODEL=gpt-5.3-chat
 CHATBOT_TEMPERATURE=1
 CHATBOT_MAX_TOKENS=350
 CHATBOT_REASONING_EFFORT=minimal
-FLASK_DEBUG=1
-FLASK_HTTPS=0
 ```
 
 ### 22.6 Execução da interface web
@@ -1041,32 +994,6 @@ Observação importante:
 
 - o Flask serve automaticamente os assets da pasta `static/`;
 - por isso, logos e ícones do projeto devem permanecer em `static/image/`.
-
-### 22.6.1 Execução com HTTPS local
-
-Para subir o projeto com HTTPS no ambiente local, defina no `.env`:
-
-```env
-FLASK_HTTPS=1
-```
-
-Depois, execute normalmente:
-
-```powershell
-python app.py
-```
-
-E acesse:
-
-```text
-https://localhost:5000
-```
-
-Observações:
-
-- o navegador exibirá aviso de certificado, porque o certificado é autoassinado;
-- esse comportamento é esperado em desenvolvimento local;
-- em produção, a recomendação continua sendo usar HTTPS por infraestrutura própria, como proxy reverso ou serviço gerenciado.
 
 ### 22.7 Execução da interface terminal
 
