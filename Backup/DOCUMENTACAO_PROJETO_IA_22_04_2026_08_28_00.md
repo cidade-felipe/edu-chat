@@ -354,8 +354,7 @@ Responsável por:
 - declarar as disciplinas disponíveis;
 - associar cada disciplina a título, descrição, exemplos e tópicos de foco;
 - gerar o prompt de sistema por disciplina;
-- ativar instruções específicas do modo quiz;
-- separar sugestões de uso normal e sugestões coerentes com avaliação guiada.
+- ativar instruções específicas do modo quiz.
 
 Esse módulo concentra o “comportamento pedagógico” do chatbot.
 
@@ -430,8 +429,7 @@ Controla:
 - estado de carregamento;
 - renderização dinâmica das mensagens;
 - gerenciamento do modo quiz;
-- interpretação de Markdown básico nas respostas exibidas no chat;
-- alternância entre sugestões de explicação e sugestões próprias do modo quiz.
+- interpretação de Markdown básico nas respostas exibidas no chat.
 
 Também passou a tratar dois tipos de ícone:
 
@@ -448,9 +446,6 @@ Também passou a interpretar marcações comuns retornadas pelo modelo, como:
 
 Fato: antes dessa melhoria, a interface mostrava os caracteres de Markdown literalmente.
 Opinião técnica: resolver isso no frontend foi a melhor opção porque melhora legibilidade sem aumentar dependências do projeto.
-
-Fato: na versão atual, o frontend também troca os exemplos exibidos quando o usuário ativa o modo quiz.
-Opinião técnica: essa separação melhora coerência pedagógica, porque o usuário deixa de ver exemplos como "explique..." em um contexto de avaliação guiada.
 
 ### 10.9 `static/image/`
 
@@ -604,7 +599,7 @@ O layout foi inspirado em uma interface escura, tecnológica e organizada, com f
 - ativação do modo quiz;
 - botão de limpar conversa;
 - área principal para mensagens;
-- sugestões iniciais de perguntas, adaptadas ao modo atual;
+- sugestões iniciais de perguntas;
 - composer de envio com suporte a `Enter` e `Shift+Enter`.
 
 ### 13.3 Sistema visual das disciplinas
@@ -664,16 +659,6 @@ Em vez de apenas explicar:
 - o aluno responde;
 - o sistema corrige;
 - a dificuldade pode ser ajustada conforme o desempenho.
-
-Na versão atual da interface, o modo quiz também altera os atalhos sugeridos ao usuário. Em vez de prompts abertos como "explique..." ou "resuma...", a aplicação passa a oferecer exemplos coerentes com avaliação, como:
-
-- "Faça um quiz sobre Revolução Francesa.";
-- "Me teste sobre a segunda lei de Newton.";
-- "Quero responder perguntas sobre DNA e RNA.".
-
-Fato: essa mudança foi aplicada por disciplina, e não por substituição genérica de texto.
-Inferência: isso deixa a experiência mais natural e reduz ruído entre intenção da interface e comportamento do backend.
-Opinião técnica: essa foi a melhor abordagem porque preserva qualidade textual, escalabilidade e controle pedagógico.
 
 ### 14.1 Valor pedagógico
 
@@ -874,7 +859,7 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 18.1 Testes automatizados
 
-No momento da atualização desta documentação, foram executados **12 testes automatizados**, todos aprovados.
+No momento da atualização desta documentação, foram executados **11 testes automatizados**, todos aprovados.
 
 Esses testes validam:
 
@@ -882,7 +867,6 @@ Esses testes validam:
 - disponibilidade da página inicial;
 - consistência das disciplinas;
 - modo quiz;
-- existência de sugestões específicas para o modo quiz;
 - normalização de endpoint;
 - leitura de configuração;
 - fallback de parâmetros do modelo.
@@ -898,7 +882,6 @@ Também foram realizadas verificações manuais, incluindo:
 - renderização correta de Markdown nas respostas do chat;
 - envio de perguntas;
 - funcionamento do modo quiz;
-- troca coerente dos atalhos quando o modo quiz é ativado;
 - limpeza de conversa;
 - compatibilidade real com o deployment Azure configurado.
 
