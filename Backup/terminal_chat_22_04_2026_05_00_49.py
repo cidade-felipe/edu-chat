@@ -9,17 +9,6 @@ EXIT_COMMANDS = {"sair", "exit", "quit"}
 
 
 def choose_subject() -> str:
-    """Solicita ao usuário a escolha de uma disciplina no terminal.
-
-    A função lista todas as disciplinas configuradas no projeto, apresenta uma
-    opção numerada para cada uma e mantém o loop de entrada até receber um
-    valor válido. Isso evita que o fluxo principal comece com contexto
-    inconsistente e melhora a experiência de uso em modo texto.
-
-    Returns:
-        str: chave interna da disciplina escolhida, usada depois na montagem do
-        prompt e na chamada ao modelo.
-    """
     subjects = list_subjects()
     print("Escolha a disciplina do chatbot:")
     for index, subject in enumerate(subjects, start=1):
@@ -39,17 +28,6 @@ def choose_subject() -> str:
 
 
 def choose_quiz_mode() -> bool:
-    """Pergunta se a conversa deve começar no modo quiz.
-
-    O objetivo é permitir que o mesmo backend funcione em dois formatos:
-    explicação livre e avaliação guiada. A função aceita respostas afirmativas
-    e negativas comuns em português e repete a pergunta até obter uma escolha
-    coerente.
-
-    Returns:
-        bool: ``True`` quando o usuário deseja ativar o modo quiz e ``False``
-        quando prefere o modo tradicional de explicação.
-    """
     while True:
         choice = input("Ativar modo quiz? (s/n): ").strip().lower()
         if choice in {"s", "sim"}:
@@ -60,16 +38,6 @@ def choose_quiz_mode() -> bool:
 
 
 def main() -> None:
-    """Executa o fluxo completo do chatbot em terminal.
-
-    Este é o ponto de entrada da versão mínima exigida pela atividade. A
-    função valida a configuração do ambiente, coleta disciplina e modo de uso,
-    mantém o histórico local da conversa e controla o encerramento por comando.
-
-    Também centraliza a experiência de erro do modo texto, garantindo que
-    problemas de configuração ou falhas previsíveis do chatbot sejam exibidos
-    de forma compreensível ao usuário final.
-    """
     try:
         chatbot = EducationalChatbot()
     except ConfigurationError as exc:
@@ -110,3 +78,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

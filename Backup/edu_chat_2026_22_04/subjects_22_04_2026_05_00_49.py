@@ -36,7 +36,7 @@ SUBJECTS: dict[str, Subject] = {
     "biologia": Subject(
         key="biologia",
         label="Biologia",
-        icon="☘️",
+        icon="DNA",
         short_description="Corpo humano, genética, ecologia e citologia com linguagem clara.",
         focus_topics="citologia, genética, ecologia, fisiologia e evolução",
         hero_title="Conecte teoria com o que acontece na vida real",
@@ -90,22 +90,6 @@ DEFAULT_SUBJECT = "matematica"
 
 
 def get_subject(subject_key: str) -> Subject:
-    """Recupera a definição completa de uma disciplina pelo identificador interno.
-
-    A aplicação trabalha com chaves curtas, como ``matematica`` e ``biologia``,
-    mas o restante do fluxo precisa da estrutura completa da disciplina para
-    renderizar interface, montar prompts e exibir sugestões iniciais.
-
-    Args:
-        subject_key: chave interna da disciplina solicitada.
-
-    Returns:
-        Subject: objeto imutável com todas as informações da disciplina.
-
-    Raises:
-        ValueError: quando a chave informada não existe entre as opções
-        suportadas pelo projeto.
-    """
     try:
         return SUBJECTS[subject_key]
     except KeyError as exc:
@@ -115,37 +99,10 @@ def get_subject(subject_key: str) -> Subject:
 
 
 def list_subjects() -> list[dict[str, object]]:
-    """Serializa as disciplinas para um formato simples de consumo pela interface.
-
-    Como o frontend recebe dados em JSON e o terminal trabalha melhor com
-    estruturas planas, esta função converte os dataclasses em dicionários
-    simples, preservando todas as propriedades relevantes de cada disciplina.
-
-    Returns:
-        list[dict[str, object]]: lista ordenada de disciplinas prontas para uso
-        em templates HTML, respostas JSON e menus do terminal.
-    """
     return [asdict(subject) for subject in SUBJECTS.values()]
 
 
 def build_system_prompt(subject_key: str, quiz_mode: bool = False) -> str:
-    """Monta o prompt de sistema usado para guiar o comportamento do modelo.
-
-    O prompt é o principal mecanismo de alinhamento pedagógico do chatbot. Ele
-    transforma um modelo genérico em um tutor educacional contextualizado por
-    disciplina, linguagem, profundidade e objetivo didático. Quando o modo
-    quiz está ativo, instruções adicionais são incluídas para mudar o formato
-    da interação de resposta livre para avaliação guiada.
-
-    Args:
-        subject_key: chave da disciplina que definirá foco temático e tom.
-        quiz_mode: indica se o chatbot deve atuar como tutor explicativo ou
-        como condutor de quiz.
-
-    Returns:
-        str: prompt completo e pronto para ser enviado como mensagem ``system``
-        ao modelo de linguagem.
-    """
     subject = get_subject(subject_key)
 
     base_prompt = f"""
@@ -178,3 +135,4 @@ Modo atual: quiz guiado.
 """.rstrip()
 
     return f"{base_prompt}\n{quiz_prompt}"
+

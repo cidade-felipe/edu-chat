@@ -15,15 +15,58 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(name)s | %(mes
 
 
 def create_app() -> Flask:
+    """Cria e configura a aplicação Flask principal do projeto.
+
+    Esta função concentra toda a montagem da camada web. Além de instanciar
+    o objeto Flask, ela registra as rotas usadas pela interface do chatbot,
+    define o comportamento de serialização JSON para preservar caracteres em
+    português e encapsula a criação do cliente de IA com cache local.
+
+    A separação dessa lógica em uma factory function traz dois benefícios
+    importantes:
+    1. facilita testes automatizados, porque o app pode ser criado sob demanda;
+    2. reduz acoplamento entre configuração global, rotas e ambiente de execução.
+
+    Returns:
+        Flask: instância pronta para servir a interface web e a API interna
+        usada pelo frontend.
+    """
     app = Flask(__name__)
     app.config["JSON_AS_ASCII"] = False
 
     @lru_cache(maxsize=1)
     def get_chatbot() -> EducationalChatbot:
+        """Inicializa e reutiliza uma única instância do chatbot por processo.
+
+        A criação do cliente Azure OpenAI envolve leitura de configuração e
+        montagem de dependências. Como essa operação não precisa acontecer a
+        cada requisição, o cache evita trabalho repetido, reduz latência e
+        mantém o backend mais eficiente.
+
+        Returns:
+            EducationalChatbot: serviço central responsável por conversar com o
+            modelo e devolver respostas educacionais.
+        """
         return EducationalChatbot()
 
     @app.get("/")
     def index() -> str:
+        """Renderiza a página principal da aplicação web.
+
+        A rota prepara os dados mínimos necessários para o frontend iniciar a
+        experiência do usuário:
+        - disciplinas disponíveis;
+        - disciplina padrão;
+        - nome do modelo configurado, quando disponível;
+        - mensagem de erro de configuração, caso o ambiente não esteja pronto.
+
+        O carregamento tolera falhas de configuração para que a interface ainda
+        possa ser exibida com feedback claro ao usuário, em vez de quebrar logo
+        na entrada.
+
+        Returns:
+            str: HTML renderizado da página inicial.
+        """
         model_name = None
         config_error = None
 
@@ -42,10 +85,32 @@ def create_app() -> Flask:
 
     @app.get("/health")
     def health() -> tuple[dict[str, str], int]:
+        """Expõe uma rota simples para verificar se o servidor está ativo.
+
+        Esta rota não depende do modelo, do frontend ou de dados externos. Ela
+        existe para smoke tests, monitoramento básico e validações rápidas de
+        que a aplicação Flask subiu corretamente.
+
+        Returns:
+            tuple[dict[str, str], int]: payload JSON com status lógico do
+            serviço e código HTTP 200.
+        """
         return {"status": "ok"}, 200
 
     @app.post("/api/chat")
     def chat() -> tuple[object, int]:
+        """Processa uma mensagem enviada pelo frontend e retorna a resposta da IA.
+
+        O endpoint recebe o corpo JSON da conversa atual, valida os campos
+        essenciais, resolve a disciplina selecionada e delega a geração da
+        resposta para a camada de serviço. Erros previsíveis, como falta de
+        mensagem ou configuração inválida, retornam HTTP 400 com texto claro.
+        Falhas inesperadas retornam HTTP 500 e ficam registradas no log.
+
+        Returns:
+            tuple[object, int]: resposta JSON com o conteúdo gerado pelo
+            chatbot ou uma mensagem de erro adequada ao tipo de falha.
+        """
         payload = request.get_json(silent=True) or {}
         message = str(payload.get("message", "")).strip()
         subject_key = str(payload.get("subject", DEFAULT_SUBJECT)).strip() or DEFAULT_SUBJECT
@@ -93,4 +158,3 @@ if __name__ == "__main__":
         port=int(os.getenv("PORT", "5000")),
         debug=os.getenv("FLASK_DEBUG", "1") == "1",
     )
-

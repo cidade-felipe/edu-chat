@@ -186,24 +186,52 @@ Essa separação melhora legibilidade, manutenção e escalabilidade.
 
 ### 7.1 Arquitetura lógica
 
-```text
-Usuário
-  |
-  +--> Interface Web (Flask + HTML + CSS + JS)
-  |         |
-  |         +--> app.py
-  |                    |
-  |                    +--> edu_chat.service.EducationalChatbot
-  |                                  |
-  |                                  +--> edu_chat.subjects
-  |                                  +--> edu_chat.config
-  |                                  +--> Azure OpenAI
-  |
-  +--> Interface Terminal (terminal_chat.py)
-            |
-            +--> edu_chat.service.EducationalChatbot
-                          |
-                          +--> Azure OpenAI
+```mermaid
+flowchart LR
+    classDef user fill:#FFF4CC,stroke:#B7791F,color:#5B3A00,stroke-width:2px;
+    classDef interface fill:#DDF3E4,stroke:#2F855A,color:#1C4532,stroke-width:1.5px;
+    classDef service fill:#DBEAFE,stroke:#2B6CB0,color:#1A365D,stroke-width:1.5px;
+    classDef module fill:#EEE3FF,stroke:#6B46C1,color:#44337A,stroke-width:1.5px;
+    classDef external fill:#FEE2E2,stroke:#C53030,color:#742A2A,stroke-width:1.5px;
+
+    U[Usuário]:::user
+
+    subgraph WEB["Interface Web"]
+        W[Flask + HTML + CSS + JS]:::interface
+        APP[app.py]:::interface
+        W --> APP
+    end
+
+    subgraph TERM["Interface Terminal"]
+        T[terminal_chat.py]:::interface
+    end
+
+    subgraph CORE["Camada de Serviço"]
+        BOT[edu_chat.service.EducationalChatbot]:::service
+    end
+
+    subgraph MOD["Módulos Internos"]
+        SUB[edu_chat.subjects]:::module
+        CONF[edu_chat.config]:::module
+    end
+
+    EXT[Azure OpenAI]:::external
+
+    U --> W
+    U --> T
+
+    APP --> BOT
+    T --> BOT
+
+    BOT --> SUB
+    BOT --> CONF
+    BOT --> EXT
+
+    style WEB fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
+    style TERM fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
+    style CORE fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
+    style MOD fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
+
 ```
 
 ### 7.2 Motivo da arquitetura escolhida
