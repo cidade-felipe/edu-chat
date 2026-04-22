@@ -32,16 +32,7 @@
                         class="subject-button{% if subject.key == default_subject %} is-active{% endif %}"
                         data-subject="{{ subject.key }}"
                     >
-                        <span class="subject-icon">
-                            {% if subject.icon.startswith("image/") %}
-                            <img
-                                src="{{ url_for('static', filename=subject.icon) }}"
-                                alt="Ícone da disciplina {{ subject.label }}"
-                            >
-                            {% else %}
-                            {{ subject.icon }}
-                            {% endif %}
-                        </span>
+                        <span class="subject-icon">{{ subject.icon }}</span>
                         <span class="subject-copy">
                             <strong>{{ subject.label }}</strong>
                             <small>{{ subject.short_description }}</small>
@@ -155,3 +146,4 @@
     <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
 </body>
 </html>
+

@@ -30,45 +30,6 @@ const elements = {
 };
 
 /**
- * Indica se o valor do ícone representa um arquivo de imagem em `static/`.
- *
- * O projeto mistura ícones textuais, como emoji e símbolos, com imagens
- * reais. Essa distinção é importante para saber se a interface deve renderizar
- * texto simples ou criar uma tag `<img>`.
- *
- * @param {string} iconValue Valor bruto configurado para o ícone.
- * @returns {boolean} `true` quando o ícone aponta para um asset de imagem.
- */
-function isImageIcon(iconValue) {
-    return typeof iconValue === "string" && iconValue.startsWith("image/");
-}
-
-/**
- * Preenche um container visual com texto ou imagem, conforme o tipo do ícone.
- *
- * Essa rotina evita duplicar lógica em múltiplos pontos da interface, como
- * cards laterais, avatares da conversa e outros componentes que usem a mesma
- * convenção de ícones.
- *
- * @param {HTMLElement} container Elemento que receberá o conteúdo visual.
- * @param {string} iconValue Texto do ícone ou caminho relativo da imagem.
- * @param {string} altText Texto alternativo usado quando o ícone é imagem.
- */
-function setIconContent(container, iconValue, altText) {
-    container.textContent = "";
-
-    if (isImageIcon(iconValue)) {
-        const image = document.createElement("img");
-        image.src = `/static/${iconValue}`;
-        image.alt = altText;
-        container.appendChild(image);
-        return;
-    }
-
-    container.textContent = iconValue;
-}
-
-/**
  * Resolve a disciplina atualmente ativa no estado da interface.
  *
  * A função prioriza a disciplina salva em `state.subject`, mas mantém um
@@ -188,7 +149,7 @@ function createMessageElement(message, roleLabel, avatarText, extraClass = "") {
 
     const avatar = document.createElement("div");
     avatar.className = "message-avatar";
-    setIconContent(avatar, avatarText, roleLabel);
+    avatar.textContent = avatarText;
 
     const body = document.createElement("div");
     body.className = "message-body";

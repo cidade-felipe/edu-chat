@@ -19,7 +19,7 @@ SUBJECTS: dict[str, Subject] = {
     "matematica": Subject(
         key="matematica",
         label="Matemática",
-        icon="image/matematica.png",
+        icon="🔢",
         short_description="Álgebra, funções, geometria e probabilidade com passo a passo.",
         focus_topics="álgebra, geometria, funções, estatística e probabilidade",
         hero_title="Domine cálculos sem decorar no escuro",
@@ -36,7 +36,7 @@ SUBJECTS: dict[str, Subject] = {
     "biologia": Subject(
         key="biologia",
         label="Biologia",
-        icon="image/microscopio.png",
+        icon="☘️",
         short_description="Corpo humano, genética, ecologia e citologia com linguagem clara.",
         focus_topics="citologia, genética, ecologia, fisiologia e evolução",
         hero_title="Conecte teoria com o que acontece na vida real",
@@ -53,7 +53,7 @@ SUBJECTS: dict[str, Subject] = {
     "historia": Subject(
         key="historia",
         label="História",
-        icon="image/livro.png",
+        icon="⌛",
         short_description="Brasil e mundo, revoluções e processos históricos sem decoreba.",
         focus_topics="história do Brasil, história geral, revoluções e movimentos sociais",
         hero_title="Entenda causas, contexto e consequências",
