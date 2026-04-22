@@ -1,3 +1,5 @@
+'''Configuração centralizada para o chatbot educacional.'''
+
 from __future__ import annotations
 
 import os

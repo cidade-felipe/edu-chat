@@ -1,3 +1,5 @@
+'''Serviço principal de conversa com o modelo Azure OpenAI.'''
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +11,7 @@ from edu_chat.config import ConfigurationError, Settings, load_settings
 from edu_chat.subjects import build_system_prompt, get_subject
 
 
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__) # Configura o logger para este módulo, permitindo rastreamento detalhado de erros e operações.
 
 
 class ChatbotError(RuntimeError):
