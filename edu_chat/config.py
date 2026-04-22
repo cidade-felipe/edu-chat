@@ -16,14 +16,14 @@ class ConfigurationError(RuntimeError):
 
 @dataclass(frozen=True)
 class Settings:
-    azure_api_key: str
-    azure_endpoint: str
-    azure_deployment: str
-    api_version: str
-    model_label: str
-    temperature: float
-    max_tokens: int
-    reasoning_effort: str
+    azure_api_key: str # chave de API para autenticação com Azure OpenAI
+    azure_endpoint: str # URL base do recurso Azure OpenAI, sem caminhos extras
+    azure_deployment: str # nome do deployment publicado no Azure para este chatbot
+    api_version: str # versão da API Azure a ser usada, como "2024-10-21"
+    model_label: str # rótulo do modelo para exibição, geralmente igual ao deployment
+    temperature: float # controle de aleatoriedade do modelo, entre 0.0 e 1.0
+    max_tokens: int # limite de tokens para a resposta gerada pelo modelo
+    reasoning_effort: str # nível de esforço de raciocínio para modelos reasoning, como "minimal" ou "high"
 
 
 def _read_float(name: str, default: float) -> float:
