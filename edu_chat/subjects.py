@@ -28,7 +28,7 @@ SUBJECTS: dict[str, Subject] = {
             "raciocínio por trás de fórmulas e contas."
         ),
         starter_questions=(
-            "Explique função do 2º grau de forma simples.",
+            "Explique função afim de forma simples.",
             "Como resolver regra de três passo a passo?",
             "Qual a diferença entre média e mediana?",
         ),
@@ -62,9 +62,9 @@ SUBJECTS: dict[str, Subject] = {
             "soltas em narrativas fáceis de lembrar."
         ),
         starter_questions=(
-            "Resuma a Revolução Francesa em linguagem simples.",
-            "Quais foram as causas da Primeira Guerra Mundial?",
-            "Explique a Era Vargas de forma objetiva.",
+            "Resuma a Revolução Francesa em 3 parágrafos.",
+            "Resuma a Guerra Fria de forma simples.",
+            "Resuma a Era Vargas objetivamente.",
         ),
     ),
     "fisica": Subject(
