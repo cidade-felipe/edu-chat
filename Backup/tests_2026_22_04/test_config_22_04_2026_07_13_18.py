@@ -29,11 +29,11 @@ class ConfigTestCase(unittest.TestCase):
         with self.assertRaises(ConfigurationError):
             _normalize_azure_endpoint("meu-recurso-sem-protocolo")
 
-    def test_load_settings_requires_all_variables_without_defaults(self) -> None:
-        """Verifica se a carga falha quando variáveis obrigatórias estão ausentes.
+    def test_load_settings_uses_api_version_from_endpoint_when_missing(self) -> None:
+        """Verifica se a carga de configuração herda a API version do endpoint.
 
-        O objetivo é garantir a nova política do projeto: nenhuma configuração
-        operacional relevante deve depender de valor padrão implícito.
+        O caso cobre uma situação real já enfrentada no projeto, na qual a
+        versão da API não estava declarada separadamente no ambiente.
         """
         fake_env = {
             "AZURE_OPENAI_API_KEY": "fake-key",
@@ -42,30 +42,6 @@ class ConfigTestCase(unittest.TestCase):
                 "openai/responses?api-version=2025-04-01-preview"
             ),
             "AZURE_DEPLOYMENT": "gpt-5.3-chat",
-        }
-
-        with patch.dict(os.environ, fake_env, clear=True):
-            with self.assertRaises(ConfigurationError):
-                load_settings()
-
-    def test_load_settings_reads_all_required_variables(self) -> None:
-        """Confirma que a configuração é carregada quando tudo está no `.env`.
-
-        Esse teste cobre o caminho feliz completo, com todas as variáveis
-        exigidas preenchidas explicitamente e sem uso de defaults.
-        """
-        fake_env = {
-            "AZURE_OPENAI_API_KEY": "fake-key",
-            "AZURE_ENDPOINT": (
-                "https://meu-recurso.cognitiveservices.azure.com/"
-                "openai/responses?api-version=2025-04-01-preview"
-            ),
-            "AZURE_DEPLOYMENT": "gpt-5.3-chat",
-            "AZURE_API_VERSION": "2025-04-01-preview",
-            "OPENAI_MODEL": "gpt-5.3-chat",
-            "CHATBOT_TEMPERATURE": "1",
-            "CHATBOT_MAX_TOKENS": "350",
-            "CHATBOT_REASONING_EFFORT": "minimal",
         }
 
         with patch.dict(os.environ, fake_env, clear=True):
@@ -74,10 +50,6 @@ class ConfigTestCase(unittest.TestCase):
         self.assertEqual(settings.azure_endpoint, "https://meu-recurso.cognitiveservices.azure.com")
         self.assertEqual(settings.api_version, "2025-04-01-preview")
         self.assertEqual(settings.azure_deployment, "gpt-5.3-chat")
-        self.assertEqual(settings.model_label, "gpt-5.3-chat")
-        self.assertEqual(settings.temperature, 1.0)
-        self.assertEqual(settings.max_tokens, 350)
-        self.assertEqual(settings.reasoning_effort, "minimal")
 
 
 if __name__ == "__main__":

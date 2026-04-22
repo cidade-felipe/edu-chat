@@ -26,49 +26,29 @@ class Settings:
     reasoning_effort: str # nível de esforço de raciocínio para modelos reasoning, como "minimal" ou "high"
 
 
-def _read_required(name: str) -> str:
-    """Lê uma variável obrigatória do ambiente e garante que ela foi definida.
+def _read_float(name: str, default: float) -> float:
+    """Lê uma variável de ambiente e converte seu valor para ``float``.
 
-    A função centraliza a política atual do projeto: nenhuma variável usada na
-    configuração pode depender de valor padrão implícito. Se o campo não estiver
-    presente ou vier vazio, a aplicação deve falhar cedo com mensagem clara.
-
-    Args:
-        name: nome da variável obrigatória a ser consultada.
-
-    Returns:
-        str: valor bruto lido do ambiente, já sem espaços laterais.
-
-    Raises:
-        ConfigurationError: quando a variável não foi definida ou está vazia.
-    """
-    raw_value = os.getenv(name, "").strip()
-    if not raw_value:
-        raise ConfigurationError(
-            f"Configuração incompleta. Defina a variável {name} no arquivo .env."
-        )
-
-    return raw_value
-
-
-def _read_float(name: str) -> float:
-    """Lê uma variável obrigatória e converte seu valor para ``float``.
-
-    Essa função é usada em parâmetros numéricos cujo valor precisa estar
-    explicitamente definido no `.env`, como temperatura. A ausência do campo ou
-    um formato inválido interrompem a inicialização do sistema.
+    A função existe para padronizar a leitura de parâmetros numéricos de
+    configuração, como temperatura do modelo. Se a variável não estiver
+    definida, o valor padrão informado é usado. Se o conteúdo existir, mas não
+    puder ser convertido com segurança, a função gera um erro explícito para
+    evitar comportamento silenciosamente incorreto.
 
     Args:
         name: nome da variável de ambiente a ser consultada.
+        default: valor que será utilizado quando a variável não existir.
 
     Returns:
-        float: valor convertido com sucesso.
+        float: valor convertido ou o padrão informado.
 
     Raises:
-        ConfigurationError: quando a variável está ausente, vazia ou não pode
-        ser convertida para ``float``.
+        ConfigurationError: quando a variável existe, mas não representa um
+        número de ponto flutuante válido.
     """
-    raw_value = _read_required(name)
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
 
     try:
         return float(raw_value)
@@ -78,25 +58,27 @@ def _read_float(name: str) -> float:
         ) from exc
 
 
-def _read_int(name: str) -> int:
-    """Lê uma variável obrigatória e converte seu valor para ``int``.
+def _read_int(name: str, default: int) -> int:
+    """Lê uma variável de ambiente e converte seu valor para ``int``.
 
     Esta rotina é usada para configurações cujo tipo correto precisa ser um
-    inteiro, como limites de tokens. Diferentemente da versão anterior do
-    projeto, ela não aplica fallback, porque o requisito atual exige que todas
-    as variáveis estejam explicitamente definidas no `.env`.
+    inteiro, como limites de tokens. Ao concentrar essa validação em uma única
+    função, o código evita repetição e torna o diagnóstico de erro mais claro.
 
     Args:
         name: nome da variável de ambiente que será lida.
+        default: valor de fallback aplicado quando a variável não está definida.
 
     Returns:
-        int: valor inteiro convertido com sucesso.
+        int: valor inteiro convertido com sucesso ou o padrão recebido.
 
     Raises:
-        ConfigurationError: quando a variável está ausente, vazia ou o valor
-        informado não pode ser interpretado como inteiro.
+        ConfigurationError: quando o valor informado não pode ser interpretado
+        como inteiro.
     """
-    raw_value = _read_required(name)
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
 
     try:
         return int(raw_value)
@@ -106,25 +88,28 @@ def _read_int(name: str) -> int:
         ) from exc
 
 
-def _read_reasoning_effort(name: str) -> str:
-    """Lê e valida o nível de esforço de raciocínio definido no `.env`.
+def _read_reasoning_effort(name: str, default: str) -> str:
+    """Lê e valida o nível de esforço de raciocínio configurado para o modelo.
 
     Alguns deployments de modelos reasoning aceitam níveis específicos de
     esforço, e valores inválidos podem gerar falha de requisição. Esta função
-    centraliza a validação dessas opções e reforça a exigência de configuração
-    explícita do projeto.
+    centraliza a validação dessas opções e mantém o arquivo de configuração
+    autodescritivo.
 
     Args:
         name: nome da variável de ambiente que armazena o esforço desejado.
+        default: valor adotado quando nada foi definido explicitamente.
 
     Returns:
         str: valor normalizado em minúsculas, pronto para ser enviado ao SDK.
 
     Raises:
-        ConfigurationError: quando a variável está ausente, vazia ou o valor
-        configurado não pertence ao conjunto suportado pela aplicação.
+        ConfigurationError: quando o valor configurado não pertence ao conjunto
+        suportado pela aplicação.
     """
-    raw_value = _read_required(name).lower()
+    raw_value = os.getenv(name, "").strip().lower()
+    if not raw_value:
+        return default
 
     allowed_values = {"minimal", "low", "medium", "high", "none"}
     if raw_value not in allowed_values:
@@ -174,12 +159,12 @@ def _normalize_azure_endpoint(raw_endpoint: str) -> tuple[str, str | None]:
 
 
 def load_settings() -> Settings:
-    """Carrega, valida e consolida todas as configurações obrigatórias.
+    """Carrega, valida e consolida todas as configurações operacionais.
 
     Esta é a porta central de configuração do projeto. A função reúne valores
-    sensíveis e operacionais do ambiente, aplica normalizações e interrompe a
-    execução com mensagens claras quando qualquer item obrigatório não está
-    definido no `.env`.
+    sensíveis e operacionais do ambiente, aplica normalizações, define valores
+    padrão coerentes e interrompe a execução com mensagens claras quando a
+    configuração mínima necessária não está disponível.
 
     A abordagem centralizada reduz risco de inconsistência entre módulos,
     facilita testes e simplifica o troubleshooting de integração com Azure.
@@ -192,19 +177,39 @@ def load_settings() -> Settings:
         ConfigurationError: quando campos obrigatórios faltam ou possuem formato
         inválido.
     """
-    azure_api_key = _read_required("AZURE_OPENAI_API_KEY")
-    raw_endpoint = _read_required("AZURE_ENDPOINT")
+    azure_api_key = os.getenv("AZURE_OPENAI_API_KEY", "").strip()
+    raw_endpoint = (
+        os.getenv("AZURE_ENDPOINT", "").strip()
+        or os.getenv("AZURE_OPENAI_ENDPOINT", "").strip()
+    )
     azure_endpoint, inferred_api_version = _normalize_azure_endpoint(raw_endpoint)
-    azure_deployment = _read_required("AZURE_DEPLOYMENT")
-    api_version = _read_required("AZURE_API_VERSION")
-    model_label = _read_required("OPENAI_MODEL")
+    azure_deployment = (
+        os.getenv("AZURE_DEPLOYMENT", "").strip()
+        or os.getenv("OPENAI_MODEL", "").strip()
+    )
 
-    if inferred_api_version and inferred_api_version != api_version:
+    missing_fields = []
+    if not azure_api_key:
+        missing_fields.append("AZURE_OPENAI_API_KEY")
+    if not azure_endpoint:
+        missing_fields.append("AZURE_ENDPOINT")
+    if not azure_deployment:
+        missing_fields.append("AZURE_DEPLOYMENT")
+
+    if missing_fields:
+        joined_fields = ", ".join(missing_fields)
         raise ConfigurationError(
-            "AZURE_ENDPOINT e AZURE_API_VERSION estao inconsistentes. "
-            "Use a mesma api-version nos dois pontos ou remova a query string "
-            "do endpoint informado no .env."
+            "Configuração incompleta. Defina as variáveis "
+            f"{joined_fields} no arquivo .env para usar o chatbot."
         )
+
+    api_version = (
+        os.getenv("AZURE_API_VERSION", "").strip()
+        or os.getenv("OPENAI_API_VERSION", "").strip()
+        or inferred_api_version
+        or "2024-10-21"
+    )
+    model_label = os.getenv("OPENAI_MODEL", azure_deployment).strip() or azure_deployment
 
     return Settings(
         azure_api_key=azure_api_key,

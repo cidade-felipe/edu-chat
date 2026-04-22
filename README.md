@@ -1,9 +1,11 @@
 # EduChat
 
-Chatbot educacional em Python com duas interfaces sobre a mesma base de lógica:
+Chatbot educacional em Python com integração a Azure OpenAI, pensado para estudantes do ensino médio e desenvolvido para a disciplina de Inteligência Artificial.
 
-- Web em Flask, com visual inspirado no layout de referência, botões por disciplina e área de conversa.
-- Terminal, para cumprir exatamente o requisito mínimo da atividade descrita em `instrucoes.md`.
+O projeto oferece duas interfaces sobre a mesma base de lógica:
+
+- Web em Flask, com sidebar, escolha de disciplinas, modo quiz e identidade visual com ícones por matéria.
+- Terminal, para cumprir o requisito mínimo da atividade e permitir uso direto em linha de comando.
 
 ## O que foi implementado
 
@@ -11,8 +13,31 @@ Chatbot educacional em Python com duas interfaces sobre a mesma base de lógica:
 - Respostas curtas e didáticas, com prompts específicos por disciplina.
 - Modo quiz opcional, onde o chatbot faz uma pergunta por vez e corrige a resposta.
 - Integração com Azure OpenAI usando variáveis do arquivo `.env`.
-- Front-end responsivo com sidebar, contexto atual, atalhos de perguntas e limpeza de conversa.
-- Testes básicos para validar rotas e prompts.
+- Front-end responsivo com sidebar, contexto atual, atalhos de perguntas, limpeza de conversa e assets visuais próprios.
+- Tratamento de compatibilidade para deployments reasoning, como `gpt-5.3-chat`.
+- Testes automatizados para rotas, prompts, configuração e fallback de parâmetros.
+- Docstrings detalhadas nas funções Python e comentários técnicos nas funções principais do JavaScript.
+
+## Tecnologias utilizadas
+
+- Python 3.12
+- Flask
+- OpenAI Python SDK com Azure OpenAI
+- python-dotenv
+- HTML, CSS e JavaScript puro
+- unittest
+
+## Recursos visuais
+
+Os assets da interface ficam em `static/image/`:
+
+- `logo.png`
+- `matematica.png`
+- `microscopio.png`
+- `livro.png`
+- `einstein.png`
+
+Importante: no Flask, imagens, CSS e JavaScript devem ficar dentro de `static/` para serem servidos corretamente.
 
 ## Estrutura do projeto
 
@@ -21,33 +46,71 @@ edu-chat/
 |-- app.py
 |-- terminal_chat.py
 |-- requirements.txt
+|-- DOCUMENTACAO_PROJETO_IA.md
 |-- edu_chat/
+|   |-- __init__.py
 |   |-- config.py
 |   |-- service.py
 |   |-- subjects.py
 |-- static/
-|   |-- css/style.css
-|   |-- js/app.js
+|   |-- css/
+|   |   |-- style.css
+|   |-- image/
+|   |   |-- logo.png
+|   |   |-- matematica.png
+|   |   |-- microscopio.png
+|   |   |-- livro.png
+|   |   |-- einstein.png
+|   |-- js/
+|       |-- app.js
 |-- templates/
 |   |-- index.html
 |-- tests/
 |   |-- test_app.py
+|   |-- test_config.py
+|   |-- test_service.py
 |   |-- test_subjects.py
 ```
 
 ## Variáveis de ambiente esperadas
 
-O projeto usa as seguintes variáveis:
+O projeto usa as seguintes variáveis principais:
 
 - `AZURE_OPENAI_API_KEY`
 - `AZURE_ENDPOINT`
 - `AZURE_DEPLOYMENT`
+- `AZURE_API_VERSION`
 - `OPENAI_MODEL` (opcional, usado para exibir o nome do modelo na interface)
-- `AZURE_API_VERSION` (opcional, padrão `2024-10-21`)
+- `CHATBOT_MAX_TOKENS` (opcional)
+- `CHATBOT_TEMPERATURE` (opcional, útil para modelos clássicos)
+- `CHATBOT_REASONING_EFFORT` (opcional, útil para models reasoning)
+
+Exemplo:
+
+```env
+AZURE_OPENAI_API_KEY=SUA_CHAVE
+AZURE_ENDPOINT=https://seu-recurso.cognitiveservices.azure.com
+AZURE_DEPLOYMENT=gpt-5.3-chat
+AZURE_API_VERSION=2025-04-01-preview
+OPENAI_MODEL=gpt-5.3-chat
+CHATBOT_MAX_TOKENS=350
+CHATBOT_REASONING_EFFORT=minimal
+```
+
+Observação:
+
+- `AZURE_ENDPOINT` deve ser a URL base do recurso, sem `/openai/...`.
+- O projeto já normaliza alguns casos de configuração incorreta, mas o ideal é manter o `.env` limpo.
 
 ## Como executar
 
-### 1. Ative o ambiente virtual
+### 1. Crie o ambiente virtual
+
+```powershell
+python -m venv venv
+```
+
+### 2. Ative o ambiente virtual
 
 No Windows PowerShell:
 
@@ -55,13 +118,13 @@ No Windows PowerShell:
 .\venv\Scripts\Activate.ps1
 ```
 
-### 2. Instale as dependências
+### 3. Instale as dependências
 
 ```powershell
 python -m pip install -r requirements.txt
 ```
 
-### 3. Rode a interface web
+### 4. Rode a interface web
 
 ```powershell
 python app.py
@@ -69,7 +132,7 @@ python app.py
 
 Depois, abra `http://localhost:5000` no navegador.
 
-### 4. Rode a versão em terminal
+### 5. Rode a versão em terminal
 
 ```powershell
 python terminal_chat.py
@@ -80,18 +143,35 @@ python terminal_chat.py
 ### Testes automatizados
 
 ```powershell
-python -m unittest discover -s tests
+python -m unittest discover -s tests -v
 ```
 
 ### Verificações manuais sugeridas
 
 - Trocar de disciplina e confirmar que o contexto atual muda.
+- Confirmar se os ícones visuais das quatro disciplinas estão aparecendo corretamente.
 - Ativar o modo quiz e validar se a IA passa a fazer uma pergunta por vez.
 - Digitar `sair` no terminal para encerrar a conversa.
 - Fazer perguntas curtas e longas para avaliar clareza, concisão e consistência.
+- Validar se a logo e as imagens estão sendo carregadas a partir de `static/image/`.
 
-## Decisões de design
+## Principais decisões de design
 
 - Uma única camada de serviço atende web e terminal. Isso reduz retrabalho, evita divergência de comportamento e diminui custo de manutenção.
 - O histórico foi limitado aos itens mais recentes para controlar latência e custo de API sem perder contexto útil.
 - Ao trocar disciplina ou modo, a conversa é reiniciada. Isso evita contaminação de contexto, reduz respostas incoerentes e melhora a precisão.
+- Ícones visuais foram centralizados em `static/image/`, seguindo o padrão correto do Flask para arquivos estáticos.
+- O backend usa fallback de parâmetros para suportar modelos com diferenças de compatibilidade, especialmente deployments reasoning.
+
+## Problemas resolvidos durante o desenvolvimento
+
+- correção de `404 Resource not found` por endpoint Azure mal configurado;
+- adaptação de parâmetros para modelos que não aceitam `max_tokens` ou `temperature` da forma tradicional;
+- correção de imagens quebradas e caminhos renderizados como texto no frontend;
+- correção da sidebar para permitir rolagem quando as disciplinas ficam maiores que a altura da tela.
+
+## Documentação adicional
+
+O projeto também possui documentação acadêmica completa em:
+
+- [DOCUMENTACAO_PROJETO_IA.md](<c:\Users\felip\OneDrive\git_work\edu-chat\DOCUMENTACAO_PROJETO_IA.md:1>)
