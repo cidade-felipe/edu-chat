@@ -297,12 +297,6 @@ body::before {
     gap: 16px;
     align-items: center;
     cursor: pointer;
-    min-width: 0;
-}
-
-.quiz-toggle > div {
-    flex: 1;
-    min-width: 0;
 }
 
 .switch {
@@ -310,7 +304,6 @@ body::before {
     width: 64px;
     height: 34px;
     display: inline-flex;
-    flex-shrink: 0;
 }
 
 .switch input {
