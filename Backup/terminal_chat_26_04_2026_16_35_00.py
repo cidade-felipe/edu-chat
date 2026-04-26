@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from edu_chat.ia import ErroChat, ErroConfiguracao, TutorIA
+from edu_chat.config import ConfigurationError
+from edu_chat.service import ChatbotError, EducationalChatbot
 from edu_chat.subjects import list_subjects
 
 
@@ -70,8 +71,8 @@ def main() -> None:
     de forma compreensível ao usuário final.
     """
     try:
-        chatbot = TutorIA()
-    except ErroConfiguracao as exc:
+        chatbot = EducationalChatbot()
+    except ConfigurationError as exc:
         print(f"\nConfiguração inválida: {exc}\n")
         return
 
@@ -92,13 +93,13 @@ def main() -> None:
             break
 
         try:
-            resposta = chatbot.responder(
-                historico=historico,
-                mensagem_usuario=mensagem_usuario,
-                chave_disciplina=chave_disciplina,
-                modo_quiz=modo_quiz,
+            resposta = chatbot.answer(
+                history=historico,
+                user_message=mensagem_usuario,
+                subject_key=chave_disciplina,
+                quiz_mode=modo_quiz,
             )
-        except ErroChat as exc:
+        except ChatbotError as exc:
             print(f"\nTutor: {exc}\n")
             continue
 

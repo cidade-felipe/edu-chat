@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import patch
 
-from edu_chat.config import ConfigurationError, load_settings
+from edu_chat.ia import ErroConfiguracao, carregar_config
 
 
 class ConfigTestCase(unittest.TestCase):
@@ -20,8 +20,8 @@ class ConfigTestCase(unittest.TestCase):
         }
 
         with patch.dict(os.environ, fake_env, clear=True):
-            with self.assertRaises(ConfigurationError):
-                load_settings()
+            with self.assertRaises(ErroConfiguracao):
+                carregar_config()
 
     def test_load_settings_requires_all_variables_without_defaults(self) -> None:
         """Verifica se a carga falha quando variáveis obrigatórias estão ausentes.
@@ -36,8 +36,8 @@ class ConfigTestCase(unittest.TestCase):
         }
 
         with patch.dict(os.environ, fake_env, clear=True):
-            with self.assertRaises(ConfigurationError):
-                load_settings()
+            with self.assertRaises(ErroConfiguracao):
+                carregar_config()
 
     def test_load_settings_reads_all_required_variables(self) -> None:
         """Confirma que a configuração é carregada quando tudo está no `.env`.
@@ -57,7 +57,7 @@ class ConfigTestCase(unittest.TestCase):
         }
 
         with patch.dict(os.environ, fake_env, clear=True):
-            settings = load_settings()
+            settings = carregar_config()
 
         self.assertEqual(settings["azure_endpoint"], "https://meu-recurso.cognitiveservices.azure.com")
         self.assertEqual(settings["api_version"], "2025-04-01-preview")

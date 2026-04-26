@@ -6,7 +6,8 @@ from functools import lru_cache
 
 from flask import Flask, jsonify, render_template, request
 
-from edu_chat.ia import ErroChat, ErroConfiguracao, TutorIA, carregar_config
+from edu_chat.config import ConfigurationError, load_settings
+from edu_chat.service import ChatbotError, EducationalChatbot
 from edu_chat.subjects import DEFAULT_SUBJECT, get_subject, list_subjects
 
 
@@ -56,7 +57,7 @@ def create_app() -> Flask:
     app.config["JSON_AS_ASCII"] = False
 
     @lru_cache(maxsize=1)
-    def get_chatbot() -> TutorIA:
+    def get_chatbot() -> EducationalChatbot:
         """Inicializa e reutiliza uma única instância do chatbot por processo.
 
         A criação do cliente Azure OpenAI envolve leitura de configuração e
@@ -68,7 +69,7 @@ def create_app() -> Flask:
             EducationalChatbot: serviço central responsável por conversar com o
             modelo e devolver respostas educacionais.
         """
-        return TutorIA()
+        return EducationalChatbot()
 
     @app.get("/")
     def index() -> str:
@@ -92,8 +93,8 @@ def create_app() -> Flask:
         erro_configuracao = None
 
         try:
-            nome_modelo = carregar_config()["model_label"]
-        except ErroConfiguracao as exc:
+            nome_modelo = load_settings()["model_label"]
+        except ConfigurationError as exc:
             erro_configuracao = str(exc)
 
         return render_template(
@@ -143,13 +144,13 @@ def create_app() -> Flask:
 
         try:
             disciplina = get_subject(chave_disciplina)
-            resposta = get_chatbot().responder(
-                historico=historico,
-                mensagem_usuario=mensagem,
-                chave_disciplina=disciplina.key,
-                modo_quiz=modo_quiz,
+            resposta = get_chatbot().answer(
+                history=historico,
+                user_message=mensagem,
+                subject_key=disciplina.key,
+                quiz_mode=modo_quiz,
             )
-        except (ErroConfiguracao, ErroChat, ValueError) as exc:
+        except (ConfigurationError, ChatbotError, ValueError) as exc:
             return jsonify({"error": str(exc)}), 400
         except Exception:
             app.logger.exception("Erro inesperado no endpoint /api/chat")
