@@ -2,6 +2,7 @@ import unittest
 
 from openai import BadRequestError
 
+from edu_chat.config import Settings
 from edu_chat.service import EducationalChatbot
 
 
@@ -110,16 +111,16 @@ class ServiceTestCase(unittest.TestCase):
         Por isso, a configuração é montada manualmente com valores sintéticos,
         suficientes para instanciar o chatbot sem dependências externas.
         """
-        self.settings = {
-            "azure_api_key": "fake-key",
-            "azure_endpoint": "https://example.cognitiveservices.azure.com",
-            "azure_deployment": "gpt-5.3-chat",
-            "api_version": "2025-04-01-preview",
-            "model_label": "gpt-5.3-chat",
-            "temperature": 0.2,
-            "max_tokens": 350,
-            "reasoning_effort": "minimal",
-        }
+        self.settings = Settings(
+            azure_api_key="fake-key",
+            azure_endpoint="https://example.cognitiveservices.azure.com",
+            azure_deployment="gpt-5.3-chat",
+            api_version="2025-04-01-preview",
+            model_label="gpt-5.3-chat",
+            temperature=0.2,
+            max_tokens=350,
+            reasoning_effort="minimal",
+        )
 
     def test_create_completion_prefers_reasoning_strategy(self) -> None:
         """Valida que a estratégia reasoning é usada primeiro quando funciona.

@@ -93,7 +93,7 @@ def create_app() -> Flask:
         erro_configuracao = None
 
         try:
-            nome_modelo = load_settings()["model_label"]
+            nome_modelo = load_settings().model_label
         except ConfigurationError as exc:
             erro_configuracao = str(exc)
 

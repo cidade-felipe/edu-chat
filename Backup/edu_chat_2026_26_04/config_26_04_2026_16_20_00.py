@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any
+from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
@@ -15,7 +15,77 @@ class ConfigurationError(RuntimeError):
     '''Erro lançado quando as variáveis de ambiente não estão prontas para uso.'''
 
 
-def load_settings() -> dict[str, Any]:
+@dataclass(frozen=True)
+class Settings:
+    '''Representa a configuração consolidada e imutável do projeto.
+
+    Esta estrutura concentra todos os parâmetros que influenciam o
+    comportamento do chatbot em tempo de execução. O uso de uma dataclass
+    imutável reduz risco de alteração acidental depois do carregamento inicial,
+    o que é importante porque esses valores afetam autenticação, roteamento de
+    chamadas para o Azure, compatibilidade de parâmetros e até a forma como a
+    interface apresenta informações ao usuário.
+
+    Principais variáveis e seu impacto prático:
+
+    - ``AZURE_OPENAI_API_KEY``:
+      chave usada para autenticar cada requisição no recurso Azure OpenAI.
+      Se estiver ausente ou incorreta, o backend não conseguirá consultar o
+      modelo. Em ambiente real, isso equivale a indisponibilidade total do
+      serviço de IA.
+
+    - ``AZURE_ENDPOINT``:
+      URL base do recurso Azure, por exemplo
+      ``https://seu-recurso.cognitiveservices.azure.com``. Ela define para onde
+      as chamadas são enviadas. Um endpoint incorreto costuma causar erros como
+      ``404 Resource not found`` ou falha de conexão.
+
+    - ``AZURE_DEPLOYMENT``:
+      nome exato do deployment publicado no Azure. Esse valor não é apenas um
+      rótulo, ele determina qual deployment receberá a requisição. Se houver
+      divergência de nome, a aplicação pode falhar mesmo com chave e endpoint
+      corretos.
+
+    - ``AZURE_API_VERSION``:
+      versão da API usada pelo SDK. Ela afeta compatibilidade de payload,
+      parâmetros aceitos e comportamento do endpoint. Uma versão incompatível
+      pode gerar falhas mesmo quando o restante da configuração está correto.
+
+    - ``OPENAI_MODEL``:
+      rótulo de modelo exibido na interface e na documentação operacional.
+      Embora não seja usado como destino efetivo da chamada principal, ele é
+      importante para rastreabilidade, entendimento do ambiente e clareza da
+      entrega acadêmica.
+
+    - ``CHATBOT_TEMPERATURE``:
+      controla o grau de variação das respostas em modelos clássicos. Valores
+      menores tendem a gerar explicações mais previsíveis e consistentes,
+      enquanto valores maiores podem ampliar criatividade, mas também elevar
+      variabilidade e risco de resposta menos objetiva.
+
+    - ``CHATBOT_MAX_TOKENS``:
+      define o teto de tamanho da resposta. Esse parâmetro impacta custo,
+      latência e profundidade da explicação. Limites muito baixos podem truncar
+      respostas úteis, enquanto limites altos podem aumentar tempo e consumo de
+      API sem ganho proporcional.
+
+    - ``CHATBOT_REASONING_EFFORT``:
+      ajusta o nível de esforço para deployments compatíveis com modelos
+      reasoning. Ele influencia custo, latência e profundidade do processo de
+      raciocínio do modelo. Para um chatbot educacional interativo, costuma ser
+      um equilíbrio importante entre qualidade da resposta e rapidez.
+    '''
+    azure_api_key: str # chave de API para autenticação com Azure OpenAI
+    azure_endpoint: str # URL base do recurso Azure OpenAI, sem caminhos extras
+    azure_deployment: str # nome do deployment publicado no Azure para este chatbot
+    api_version: str # versão da API Azure a ser usada, como '2024-10-21'
+    model_label: str # rótulo do modelo para exibição, geralmente igual ao deployment
+    temperature: float # controle de aleatoriedade do modelo, entre 0.0 e 1.0
+    max_tokens: int # limite de tokens para a resposta gerada pelo modelo
+    reasoning_effort: str # nível de esforço de raciocínio para modelos reasoning, como 'minimal' ou 'high'
+
+
+def load_settings() -> Settings:
     '''Carrega, valida e consolida todas as configurações obrigatórias.
 
     Esta é a porta central de configuração do projeto. A função reúne valores
@@ -61,7 +131,7 @@ def load_settings() -> dict[str, Any]:
     - melhora qualidade acadêmica e operacional da entrega.
 
     Returns:
-        dict[str, Any]: dicionário com todos os parâmetros necessários para o
+        Settings: objeto imutável com todos os parâmetros necessários para o
         chatbot funcionar no backend e na interface.
 
     Raises:
@@ -122,13 +192,13 @@ def load_settings() -> dict[str, Any]:
             f'A variável CHATBOT_REASONING_EFFORT precisa ser uma destas opções: {opcoes_permitidas}.'
         )
 
-    return {
-        'azure_api_key': chave_api_azure,
-        'azure_endpoint': endpoint_azure,
-        'azure_deployment': deployment_azure,
-        'api_version': versao_api,
-        'model_label': rotulo_modelo,
-        'temperature': temperatura,
-        'max_tokens': max_tokens,
-        'reasoning_effort': esforco_raciocinio,
-    }
+    return Settings(
+        azure_api_key=chave_api_azure,
+        azure_endpoint=endpoint_azure,
+        azure_deployment=deployment_azure,
+        api_version=versao_api,
+        model_label=rotulo_modelo,
+        temperature=temperatura,
+        max_tokens=max_tokens,
+        reasoning_effort=esforco_raciocinio,
+    )

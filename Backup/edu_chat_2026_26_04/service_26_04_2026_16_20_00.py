@@ -7,7 +7,7 @@ from typing import Iterable
 
 from openai import AzureOpenAI, BadRequestError, NotFoundError
 
-from edu_chat.config import ConfigurationError, load_settings
+from edu_chat.config import ConfigurationError, Settings, load_settings
 from edu_chat.subjects import build_system_prompt, get_subject
 
 
@@ -19,7 +19,7 @@ class ChatbotError(RuntimeError):
 
 
 class EducationalChatbot:
-    def __init__(self, settings: dict | None = None) -> None:
+    def __init__(self, settings: Settings | None = None) -> None:
         '''Inicializa o serviço principal de conversa com o modelo.
 
         O construtor recebe configurações previamente carregadas, quando isso
@@ -50,10 +50,10 @@ class EducationalChatbot:
         '''
         self.settings = settings or load_settings()
         self.client = AzureOpenAI(
-            api_key=self.settings['azure_api_key'],
-            api_version=self.settings['api_version'],
-            azure_endpoint=self.settings['azure_endpoint'],
-            azure_deployment=self.settings['azure_deployment'],
+            api_key=self.settings.azure_api_key,
+            api_version=self.settings.api_version,
+            azure_endpoint=self.settings.azure_endpoint,
+            azure_deployment=self.settings.azure_deployment,
             timeout=45.0,
         )
 
@@ -189,20 +189,20 @@ class EducationalChatbot:
         '''
         estrategias_requisicao = []
 
-        if self.settings['reasoning_effort'] != 'none':
+        if self.settings.reasoning_effort != 'none':
             estrategias_requisicao.append(
                 {
-                    'max_output_tokens': self.settings['max_tokens'],
-                    'reasoning_effort': self.settings['reasoning_effort'],
+                    'max_output_tokens': self.settings.max_tokens,
+                    'reasoning_effort': self.settings.reasoning_effort,
                 }
             )
 
         estrategias_requisicao.extend(
             [
-                {'max_output_tokens': self.settings['max_tokens']},
+                {'max_output_tokens': self.settings.max_tokens},
                 {
-                    'max_output_tokens': self.settings['max_tokens'],
-                    'temperature': self.settings['temperature'],
+                    'max_output_tokens': self.settings.max_tokens,
+                    'temperature': self.settings.temperature,
                 },
             ]
         )
@@ -211,7 +211,7 @@ class EducationalChatbot:
         for estrategia in estrategias_requisicao:
             try:
                 return self.client.responses.create(
-                    model=self.settings['azure_deployment'],
+                    model=self.settings.azure_deployment,
                     input=messages,
                     **estrategia,
                 )
@@ -222,7 +222,7 @@ class EducationalChatbot:
                     estrategia_sem_esforco = dict(estrategia)
                     estrategia_sem_esforco.pop("reasoning_effort", None)
                     return self.client.responses.create(
-                        model=self.settings['azure_deployment'],
+                        model=self.settings.azure_deployment,
                         input=messages,
                         **estrategia_sem_esforco,
                     )

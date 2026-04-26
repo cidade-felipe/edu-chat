@@ -59,13 +59,13 @@ class ConfigTestCase(unittest.TestCase):
         with patch.dict(os.environ, fake_env, clear=True):
             settings = load_settings()
 
-        self.assertEqual(settings["azure_endpoint"], "https://meu-recurso.cognitiveservices.azure.com")
-        self.assertEqual(settings["api_version"], "2025-04-01-preview")
-        self.assertEqual(settings["azure_deployment"], "gpt-5.3-chat")
-        self.assertEqual(settings["model_label"], "gpt-5.3-chat")
-        self.assertEqual(settings["temperature"], 1.0)
-        self.assertEqual(settings["max_tokens"], 350)
-        self.assertEqual(settings["reasoning_effort"], "minimal")
+        self.assertEqual(settings.azure_endpoint, "https://meu-recurso.cognitiveservices.azure.com")
+        self.assertEqual(settings.api_version, "2025-04-01-preview")
+        self.assertEqual(settings.azure_deployment, "gpt-5.3-chat")
+        self.assertEqual(settings.model_label, "gpt-5.3-chat")
+        self.assertEqual(settings.temperature, 1.0)
+        self.assertEqual(settings.max_tokens, 350)
+        self.assertEqual(settings.reasoning_effort, "minimal")
 
 
 if __name__ == "__main__":
