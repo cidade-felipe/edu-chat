@@ -108,13 +108,13 @@ def _read_required(name: str) -> str:
     Raises:
         ConfigurationError: quando a variável não foi definida ou está vazia.
     '''
-    valor_bruto = os.getenv(name, '').strip()
-    if not valor_bruto:
+    raw_value = os.getenv(name, '').strip()
+    if not raw_value:
         raise ConfigurationError(
             f'Configuração incompleta. Defina a variável {name} no arquivo .env.'
         )
 
-    return valor_bruto
+    return raw_value
 
 
 def load_settings() -> Settings:
@@ -170,49 +170,49 @@ def load_settings() -> Settings:
         ConfigurationError: quando campos obrigatórios faltam ou possuem formato
         inválido.
     '''
-    chave_api_azure = _read_required('AZURE_OPENAI_API_KEY')
-    endpoint_azure = _read_required('AZURE_ENDPOINT').rstrip('/')
-    deployment_azure = _read_required('AZURE_DEPLOYMENT')
-    versao_api = _read_required('AZURE_API_VERSION')
-    rotulo_modelo = _read_required('OPENAI_MODEL')
-    temperatura_bruta = _read_required('CHATBOT_TEMPERATURE')
-    max_tokens_bruto = _read_required('CHATBOT_MAX_TOKENS')
-    esforco_raciocinio = _read_required('CHATBOT_REASONING_EFFORT').lower()
+    azure_api_key = _read_required('AZURE_OPENAI_API_KEY')
+    azure_endpoint = _read_required('AZURE_ENDPOINT').rstrip('/')
+    azure_deployment = _read_required('AZURE_DEPLOYMENT')
+    api_version = _read_required('AZURE_API_VERSION')
+    model_label = _read_required('OPENAI_MODEL')
+    temperature_raw = _read_required('CHATBOT_TEMPERATURE')
+    max_tokens_raw = _read_required('CHATBOT_MAX_TOKENS')
+    reasoning_effort = _read_required('CHATBOT_REASONING_EFFORT').lower()
 
-    if not endpoint_azure.startswith(('http://', 'https://')):
+    if not azure_endpoint.startswith(('http://', 'https://')):
         raise ConfigurationError(
             'AZURE_ENDPOINT inválido. Use a URL base do recurso, por exemplo '
             '"https://seu-recurso.cognitiveservices.azure.com".'
         )
 
     try:
-        temperatura = float(temperatura_bruta)
+        temperature = float(temperature_raw)
     except ValueError as exc:
         raise ConfigurationError(
-            f"A variável CHATBOT_TEMPERATURE precisa ser numérica, mas recebeu {temperatura_bruta!r}."
+            f"A variável CHATBOT_TEMPERATURE precisa ser numérica, mas recebeu {temperature_raw!r}."
         ) from exc
 
     try:
-        max_tokens = int(max_tokens_bruto)
+        max_tokens = int(max_tokens_raw)
     except ValueError as exc:
         raise ConfigurationError(
-            f"A variável CHATBOT_MAX_TOKENS precisa ser inteira, mas recebeu {max_tokens_bruto!r}."
+            f"A variável CHATBOT_MAX_TOKENS precisa ser inteira, mas recebeu {max_tokens_raw!r}."
         ) from exc
 
-    esforcos_permitidos = {'minimal', 'low', 'medium', 'high', 'none'}
-    if esforco_raciocinio not in esforcos_permitidos:
-        opcoes_permitidas = ', '.join(sorted(esforcos_permitidos))
+    allowed_reasoning = {'minimal', 'low', 'medium', 'high', 'none'}
+    if reasoning_effort not in allowed_reasoning:
+        allowed = ', '.join(sorted(allowed_reasoning))
         raise ConfigurationError(
-            f'A variável CHATBOT_REASONING_EFFORT precisa ser uma destas opções: {opcoes_permitidas}.'
+            f'A variável CHATBOT_REASONING_EFFORT precisa ser uma destas opções: {allowed}.'
         )
 
     return Settings(
-        azure_api_key=chave_api_azure,
-        azure_endpoint=endpoint_azure,
-        azure_deployment=deployment_azure,
-        api_version=versao_api,
-        model_label=rotulo_modelo,
-        temperature=temperatura,
+        azure_api_key=azure_api_key,
+        azure_endpoint=azure_endpoint,
+        azure_deployment=azure_deployment,
+        api_version=api_version,
+        model_label=model_label,
+        temperature=temperature,
         max_tokens=max_tokens,
-        reasoning_effort=esforco_raciocinio,
+        reasoning_effort=reasoning_effort,
     )

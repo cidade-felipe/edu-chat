@@ -89,20 +89,20 @@ def create_app() -> Flask:
         Returns:
             str: HTML renderizado da página inicial.
         """
-        nome_modelo = None
-        erro_configuracao = None
+        model_name = None
+        config_error = None
 
         try:
-            nome_modelo = load_settings().model_label
+            model_name = load_settings().model_label
         except ConfigurationError as exc:
-            erro_configuracao = str(exc)
+            config_error = str(exc)
 
         return render_template(
             "index.html",
             subjects=list_subjects(),
             default_subject=DEFAULT_SUBJECT,
-            model_name=nome_modelo,
-            config_error=erro_configuracao,
+            model_name=model_name,
+            config_error=config_error,
         )
 
     @app.get("/health")
@@ -133,22 +133,22 @@ def create_app() -> Flask:
             tuple[object, int]: resposta JSON com o conteúdo gerado pelo
             chatbot ou uma mensagem de erro adequada ao tipo de falha.
         """
-        corpo = request.get_json(silent=True) or {}
-        mensagem = str(corpo.get("message", "")).strip()
-        chave_disciplina = str(corpo.get("subject", DEFAULT_SUBJECT)).strip() or DEFAULT_SUBJECT
-        historico = corpo.get("history", [])
-        modo_quiz = bool(corpo.get("quiz_mode", False))
+        payload = request.get_json(silent=True) or {}
+        message = str(payload.get("message", "")).strip()
+        subject_key = str(payload.get("subject", DEFAULT_SUBJECT)).strip() or DEFAULT_SUBJECT
+        history = payload.get("history", [])
+        quiz_mode = bool(payload.get("quiz_mode", False))
 
-        if not mensagem:
+        if not message:
             return jsonify({"error": "Digite uma pergunta antes de enviar."}), 400
 
         try:
-            disciplina = get_subject(chave_disciplina)
-            resposta = get_chatbot().answer(
-                history=historico,
-                user_message=mensagem,
-                subject_key=disciplina.key,
-                quiz_mode=modo_quiz,
+            subject = get_subject(subject_key)
+            answer = get_chatbot().answer(
+                history=history,
+                user_message=message,
+                subject_key=subject.key,
+                quiz_mode=quiz_mode,
             )
         except (ConfigurationError, ChatbotError, ValueError) as exc:
             return jsonify({"error": str(exc)}), 400
@@ -166,7 +166,7 @@ def create_app() -> Flask:
                 500,
             )
 
-        return jsonify({"answer": resposta, "subject": disciplina.label}), 200
+        return jsonify({"answer": answer, "subject": subject.label}), 200
 
     return app
 
@@ -174,11 +174,11 @@ def create_app() -> Flask:
 app = create_app()
 
 if __name__ == "__main__":
-    debug_ativado = os.getenv("FLASK_DEBUG", "1").strip().lower() in {"1", "true", "yes", "on"}
-    https_ativado = os.getenv("FLASK_HTTPS", "").strip().lower() in {"1", "true", "yes", "on"}
-    contexto_ssl = None
+    debug_enabled = os.getenv("FLASK_DEBUG", "1").strip().lower() in {"1", "true", "yes", "on"}
+    https_enabled = os.getenv("FLASK_HTTPS", "").strip().lower() in {"1", "true", "yes", "on"}
+    ssl_context = None
 
-    if https_ativado:
+    if https_enabled:
         import importlib.util
 
         if importlib.util.find_spec("cryptography") is None:
@@ -187,11 +187,12 @@ if __name__ == "__main__":
                 "Instale as dependências com 'python -m pip install -r requirements.txt' "
                 "ou execute 'python -m pip install cryptography'."
             )
-        contexto_ssl = "adhoc"
+
+        ssl_context = "adhoc"
 
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", "5000")),
-        debug=debug_ativado,
-        ssl_context=contexto_ssl,
+        debug=debug_enabled,
+        ssl_context=ssl_context,
     )

@@ -20,20 +20,20 @@ def choose_subject() -> str:
         str: chave interna da disciplina escolhida, usada depois na montagem do
         prompt e na chamada ao modelo.
     """
-    disciplinas = list_subjects()
+    subjects = list_subjects() # subjects é uma lista de dicionários com as chaves "key", "label" e "short_description"
     print("Escolha a disciplina do chatbot:")
-    for indice, disciplina in enumerate(disciplinas, start=1):
-        print(f"{indice}. {disciplina['label']} - {disciplina['short_description']}")
+    for index, subject in enumerate(subjects, start=1):
+        print(f"{index}. {subject['label']} - {subject['short_description']}")
 
     while True:
-        escolha = input("\nDigite o número da disciplina: ").strip()
-        if not escolha.isdigit():
+        choice = input("\nDigite o número da disciplina: ").strip()
+        if not choice.isdigit():
             print("Digite apenas o número correspondente à disciplina.")
             continue
 
-        posicao = int(escolha) - 1
-        if 0 <= posicao < len(disciplinas):
-            return disciplinas[posicao]["key"]
+        position = int(choice) - 1 # Ajusta para índice zero-based
+        if 0 <= position < len(subjects):
+            return subjects[position]["key"]
 
         print("Opção inválida. Tente novamente.")
 
@@ -51,10 +51,10 @@ def choose_quiz_mode() -> bool:
         quando prefere o modo tradicional de explicação.
     """
     while True:
-        escolha = input("Ativar modo quiz? (s/n): ").strip().lower()
-        if escolha in {"s", "sim"}:
+        choice = input("Ativar modo quiz? (s/n): ").strip().lower()
+        if choice in {"s", "sim"}:
             return True
-        if escolha in {"n", "nao", "não"}:
+        if choice in {"n", "nao", "não"}:
             return False
         print("Responda com 's' para sim ou 'n' para não.")
 
@@ -76,36 +76,36 @@ def main() -> None:
         print(f"\nConfiguração inválida: {exc}\n")
         return
 
-    chave_disciplina = choose_subject()
-    modo_quiz = choose_quiz_mode()
-    historico: list[dict[str, str]] = []
+    subject_key = choose_subject()
+    quiz_mode = choose_quiz_mode()
+    history: list[dict[str, str]] = [] # Mantém o histórico local da conversa para contexto, mas não é persistente entre execuções
 
     print("\nChat iniciado. Digite sua pergunta ou use 'sair' para encerrar.\n")
 
     while True:
-        mensagem_usuario = input("Você: ").strip()
-        if not mensagem_usuario:
+        user_message = input("Você: ").strip()
+        if not user_message:
             print("Digite uma pergunta antes de enviar.\n")
             continue
 
-        if mensagem_usuario.lower() in EXIT_COMMANDS:
+        if user_message.lower() in EXIT_COMMANDS:
             print("\nAté a próxima. Bons estudos!\n")
             break
 
         try:
-            resposta = chatbot.answer(
-                history=historico,
-                user_message=mensagem_usuario,
-                subject_key=chave_disciplina,
-                quiz_mode=modo_quiz,
+            answer = chatbot.answer(
+                history=history,
+                user_message=user_message,
+                subject_key=subject_key,
+                quiz_mode=quiz_mode,
             )
         except ChatbotError as exc:
             print(f"\nTutor: {exc}\n")
             continue
 
-        historico.append({"role": "user", "content": mensagem_usuario})
-        historico.append({"role": "assistant", "content": resposta})
-        print(f"\nTutor: {resposta}\n")
+        history.append({"role": "user", "content": user_message}) # Role "user" para mensagens do usuário e "assistant" para respostas do chatbot, seguindo convenção comum de sistemas de diálogo
+        history.append({"role": "assistant", "content": answer}) # Adiciona a resposta do chatbot ao histórico para manter o contexto em mensagens futuras, mesmo que o histórico não seja persistente entre execuções
+        print(f"\nTutor: {answer}\n")
 
 
 if __name__ == "__main__":

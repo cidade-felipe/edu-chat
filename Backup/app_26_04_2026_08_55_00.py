@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import logging
 import os
 from functools import lru_cache
@@ -89,20 +90,20 @@ def create_app() -> Flask:
         Returns:
             str: HTML renderizado da página inicial.
         """
-        nome_modelo = None
-        erro_configuracao = None
+        model_name = None
+        config_error = None
 
         try:
-            nome_modelo = load_settings().model_label
+            model_name = load_settings().model_label
         except ConfigurationError as exc:
-            erro_configuracao = str(exc)
+            config_error = str(exc)
 
         return render_template(
             "index.html",
             subjects=list_subjects(),
             default_subject=DEFAULT_SUBJECT,
-            model_name=nome_modelo,
-            config_error=erro_configuracao,
+            model_name=model_name,
+            config_error=config_error,
         )
 
     @app.get("/health")
@@ -133,22 +134,22 @@ def create_app() -> Flask:
             tuple[object, int]: resposta JSON com o conteúdo gerado pelo
             chatbot ou uma mensagem de erro adequada ao tipo de falha.
         """
-        corpo = request.get_json(silent=True) or {}
-        mensagem = str(corpo.get("message", "")).strip()
-        chave_disciplina = str(corpo.get("subject", DEFAULT_SUBJECT)).strip() or DEFAULT_SUBJECT
-        historico = corpo.get("history", [])
-        modo_quiz = bool(corpo.get("quiz_mode", False))
+        payload = request.get_json(silent=True) or {}
+        message = str(payload.get("message", "")).strip()
+        subject_key = str(payload.get("subject", DEFAULT_SUBJECT)).strip() or DEFAULT_SUBJECT
+        history = payload.get("history", [])
+        quiz_mode = bool(payload.get("quiz_mode", False))
 
-        if not mensagem:
+        if not message:
             return jsonify({"error": "Digite uma pergunta antes de enviar."}), 400
 
         try:
-            disciplina = get_subject(chave_disciplina)
-            resposta = get_chatbot().answer(
-                history=historico,
-                user_message=mensagem,
-                subject_key=disciplina.key,
-                quiz_mode=modo_quiz,
+            subject = get_subject(subject_key)
+            answer = get_chatbot().answer(
+                history=history,
+                user_message=message,
+                subject_key=subject.key,
+                quiz_mode=quiz_mode,
             )
         except (ConfigurationError, ChatbotError, ValueError) as exc:
             return jsonify({"error": str(exc)}), 400
@@ -166,32 +167,92 @@ def create_app() -> Flask:
                 500,
             )
 
-        return jsonify({"answer": resposta, "subject": disciplina.label}), 200
+        return jsonify({"answer": answer, "subject": subject.label}), 200
 
     return app
 
 
 app = create_app()
 
+
+def _is_truthy_env(value: str | None) -> bool:
+    """Interpreta uma string de ambiente como flag booleana.
+
+    A aplicação usa variáveis de ambiente para decidir se o servidor local deve
+    subir com HTTPS habilitado. Como esse tipo de configuração costuma vir em
+    formatos variados, por exemplo `1`, `true`, `yes` ou `on`, esta função
+    centraliza a normalização e evita lógica duplicada no bloco de execução.
+
+    Ela é usada principalmente para interpretar:
+
+    - ``FLASK_DEBUG``, que ativa recursos de desenvolvimento;
+    - ``FLASK_HTTPS``, que liga o servidor local com TLS.
+
+    Centralizar essa conversão reduz risco de divergência semântica, por
+    exemplo quando uma variável aceita `1` em um ponto do código e exige
+    `true` em outro.
+
+    Args:
+        value: Valor bruto lido da variável de ambiente.
+
+    Returns:
+        bool: `True` quando o conteúdo representa uma opção habilitada,
+        `False` nos demais casos, inclusive quando a variável não existe.
+    """
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _resolve_ssl_context(https_enabled: bool) -> str | None:
+    """Resolve a configuração SSL usada pelo servidor Flask local.
+
+    Em desenvolvimento, o projeto usa certificados ad-hoc do Werkzeug para
+    permitir testes rápidos com HTTPS. Essa funcionalidade depende da
+    biblioteca `cryptography`. Em vez de deixar a aplicação quebrar com um
+    traceback genérico, a função valida essa dependência antes de subir o
+    servidor e devolve uma mensagem clara de correção.
+
+    Relação com as variáveis principais de execução local:
+
+    - ``FLASK_HTTPS``:
+      quando habilitada, esta função tenta devolver `"adhoc"`.
+    - ``FLASK_DEBUG``:
+      costuma ser usada em conjunto durante desenvolvimento, embora não seja
+      obrigatória para o HTTPS.
+
+    Em termos práticos, este método reduz risco operacional em apresentação,
+    aula ou teste manual, porque transforma uma falha técnica pouco amigável em
+    um erro acionável.
+
+    Args:
+        https_enabled: Indica se o usuário solicitou execução local em HTTPS.
+
+    Returns:
+        str | None: `"adhoc"` quando o HTTPS estiver habilitado e a
+        dependência necessária estiver disponível, ou `None` para manter HTTP.
+
+    Raises:
+        RuntimeError: Quando o HTTPS foi solicitado, mas `cryptography` não
+        está instalada no ambiente virtual.
+    """
+    if not https_enabled:
+        return None
+
+    if importlib.util.find_spec("cryptography") is None:
+        raise RuntimeError(
+            "HTTPS local com FLASK_HTTPS=1 requer a biblioteca 'cryptography'. "
+            "Instale as dependências com 'python -m pip install -r requirements.txt' "
+            "ou execute 'python -m pip install cryptography'."
+        )
+
+    return "adhoc"
+
+
 if __name__ == "__main__":
-    debug_ativado = os.getenv("FLASK_DEBUG", "1").strip().lower() in {"1", "true", "yes", "on"}
-    https_ativado = os.getenv("FLASK_HTTPS", "").strip().lower() in {"1", "true", "yes", "on"}
-    contexto_ssl = None
-
-    if https_ativado:
-        import importlib.util
-
-        if importlib.util.find_spec("cryptography") is None:
-            raise RuntimeError(
-                "HTTPS local com FLASK_HTTPS=1 requer a biblioteca 'cryptography'. "
-                "Instale as dependências com 'python -m pip install -r requirements.txt' "
-                "ou execute 'python -m pip install cryptography'."
-            )
-        contexto_ssl = "adhoc"
+    https_enabled = _is_truthy_env(os.getenv("FLASK_HTTPS"))
 
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", "5000")),
-        debug=debug_ativado,
-        ssl_context=contexto_ssl,
+        debug=_is_truthy_env(os.getenv("FLASK_DEBUG", "1")),
+        ssl_context=_resolve_ssl_context(https_enabled),
     )

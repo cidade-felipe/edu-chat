@@ -108,13 +108,151 @@ def _read_required(name: str) -> str:
     Raises:
         ConfigurationError: quando a variável não foi definida ou está vazia.
     '''
-    valor_bruto = os.getenv(name, '').strip()
-    if not valor_bruto:
+    raw_value = os.getenv(name, '').strip()
+    if not raw_value:
         raise ConfigurationError(
             f'Configuração incompleta. Defina a variável {name} no arquivo .env.'
         )
 
-    return valor_bruto
+    return raw_value
+
+
+def _read_float(name: str) -> float:
+    '''Lê uma variável obrigatória e converte seu valor para ``float``.
+
+    Essa função é usada em parâmetros numéricos cujo valor precisa estar
+    explicitamente definido no `.env`, como temperatura. A ausência do campo ou
+    um formato inválido interrompem a inicialização do sistema.
+
+    No contexto deste projeto, o principal uso é ``CHATBOT_TEMPERATURE``.
+    Embora esse valor nem sempre seja aplicado a todos os tipos de modelo,
+    mantê-lo explicitamente documentado e validado ajuda a:
+
+    - tornar a configuração mais auditável;
+    - evitar divergência entre ambientes;
+    - deixar claro qual comportamento é esperado para deployments clássicos.
+
+    Args:
+        name: nome da variável de ambiente a ser consultada.
+
+    Returns:
+        float: valor convertido com sucesso.
+
+    Raises:
+        ConfigurationError: quando a variável está ausente, vazia ou não pode
+        ser convertida para ``float``.
+    '''
+    raw_value = _read_required(name)
+
+    try:
+        return float(raw_value)
+    except ValueError as exc:
+        raise ConfigurationError(
+            f'A variável {name} precisa ser numérica, mas recebeu {raw_value!r}.'
+        ) from exc
+
+
+def _read_int(name: str) -> int:
+    '''Lê uma variável obrigatória e converte seu valor para ``int``.
+
+    Esta rotina é usada para configurações cujo tipo correto precisa ser um
+    inteiro, como limites de tokens. Diferentemente da versão anterior do
+    projeto, ela não aplica fallback, porque o requisito atual exige que todas
+    as variáveis estejam explicitamente definidas no `.env`.
+
+    O principal caso de uso aqui é ``CHATBOT_MAX_TOKENS``. Esse parâmetro tem
+    impacto direto em custo e tempo de resposta. Em termos práticos:
+
+    - valores menores tendem a reduzir latência e consumo;
+    - valores maiores permitem explicações mais longas;
+    - um valor incorreto pode degradar experiência do usuário ou elevar custo
+      de inferência sem necessidade.
+
+    Args:
+        name: nome da variável de ambiente que será lida.
+
+    Returns:
+        int: valor inteiro convertido com sucesso.
+
+    Raises:
+        ConfigurationError: quando a variável está ausente, vazia ou o valor
+        informado não pode ser interpretado como inteiro.
+    '''
+    raw_value = _read_required(name)
+
+    try:
+        return int(raw_value)
+    except ValueError as exc:
+        raise ConfigurationError(
+            f'A variável {name} precisa ser inteira, mas recebeu {raw_value!r}.'
+        ) from exc
+
+
+def _read_reasoning_effort(name: str) -> str:
+    '''Lê e valida o nível de esforço de raciocínio definido no `.env`.
+
+    Alguns deployments de modelos reasoning aceitam níveis específicos de
+    esforço, e valores inválidos podem gerar falha de requisição. Esta função
+    centraliza a validação dessas opções e reforça a exigência de configuração
+    explícita do projeto.
+
+    No projeto, essa variável se torna especialmente relevante quando o
+    deployment escolhido usa estratégias modernas de raciocínio. O valor
+    configurado afeta três dimensões importantes:
+
+    - profundidade potencial da resposta;
+    - latência percebida pelo usuário;
+    - custo operacional da interação.
+
+    Args:
+        name: nome da variável de ambiente que armazena o esforço desejado.
+
+    Returns:
+        str: valor normalizado em minúsculas, pronto para ser enviado ao SDK.
+
+    Raises:
+        ConfigurationError: quando a variável está ausente, vazia ou o valor
+        configurado não pertence ao conjunto suportado pela aplicação.
+    '''
+    raw_value = _read_required(name).lower()
+
+    allowed_values = {'minimal', 'low', 'medium', 'high', 'none'}
+    if raw_value not in allowed_values:
+        allowed = ', '.join(sorted(allowed_values))
+        raise ConfigurationError(
+            f'A variável {name} precisa ser uma destas opções: {allowed}.'
+        )
+
+    return raw_value
+
+
+def _read_endpoint(name: str) -> str:
+    '''Lê o endpoint do Azure OpenAI com validação mínima.
+
+    A versão atual do projeto assume uma configuração mais explícita e menos
+    mágica: o `.env` deve trazer a URL correta do recurso, sem depender de
+    correções automáticas complexas no código. Por isso, a função apenas:
+
+    - exige que a variável exista;
+    - verifica se ela começa com `http://` ou `https://`;
+    - remove uma barra final desnecessária, quando houver.
+
+    Args:
+        name: nome da variável de ambiente que guarda o endpoint.
+
+    Returns:
+        str: endpoint pronto para uso pelo SDK.
+
+    Raises:
+        ConfigurationError: quando o valor não parece uma URL HTTP válida.
+    '''
+    endpoint = _read_required(name).rstrip('/')
+    if not endpoint.startswith(('http://', 'https://')):
+        raise ConfigurationError(
+            'AZURE_ENDPOINT inválido. Use a URL base do recurso, por exemplo '
+            '"https://seu-recurso.cognitiveservices.azure.com".'
+        )
+    return endpoint
 
 
 def load_settings() -> Settings:
@@ -170,49 +308,19 @@ def load_settings() -> Settings:
         ConfigurationError: quando campos obrigatórios faltam ou possuem formato
         inválido.
     '''
-    chave_api_azure = _read_required('AZURE_OPENAI_API_KEY')
-    endpoint_azure = _read_required('AZURE_ENDPOINT').rstrip('/')
-    deployment_azure = _read_required('AZURE_DEPLOYMENT')
-    versao_api = _read_required('AZURE_API_VERSION')
-    rotulo_modelo = _read_required('OPENAI_MODEL')
-    temperatura_bruta = _read_required('CHATBOT_TEMPERATURE')
-    max_tokens_bruto = _read_required('CHATBOT_MAX_TOKENS')
-    esforco_raciocinio = _read_required('CHATBOT_REASONING_EFFORT').lower()
-
-    if not endpoint_azure.startswith(('http://', 'https://')):
-        raise ConfigurationError(
-            'AZURE_ENDPOINT inválido. Use a URL base do recurso, por exemplo '
-            '"https://seu-recurso.cognitiveservices.azure.com".'
-        )
-
-    try:
-        temperatura = float(temperatura_bruta)
-    except ValueError as exc:
-        raise ConfigurationError(
-            f"A variável CHATBOT_TEMPERATURE precisa ser numérica, mas recebeu {temperatura_bruta!r}."
-        ) from exc
-
-    try:
-        max_tokens = int(max_tokens_bruto)
-    except ValueError as exc:
-        raise ConfigurationError(
-            f"A variável CHATBOT_MAX_TOKENS precisa ser inteira, mas recebeu {max_tokens_bruto!r}."
-        ) from exc
-
-    esforcos_permitidos = {'minimal', 'low', 'medium', 'high', 'none'}
-    if esforco_raciocinio not in esforcos_permitidos:
-        opcoes_permitidas = ', '.join(sorted(esforcos_permitidos))
-        raise ConfigurationError(
-            f'A variável CHATBOT_REASONING_EFFORT precisa ser uma destas opções: {opcoes_permitidas}.'
-        )
+    azure_api_key = _read_required('AZURE_OPENAI_API_KEY')
+    azure_endpoint = _read_endpoint('AZURE_ENDPOINT')
+    azure_deployment = _read_required('AZURE_DEPLOYMENT')
+    api_version = _read_required('AZURE_API_VERSION')
+    model_label = _read_required('OPENAI_MODEL')
 
     return Settings(
-        azure_api_key=chave_api_azure,
-        azure_endpoint=endpoint_azure,
-        azure_deployment=deployment_azure,
-        api_version=versao_api,
-        model_label=rotulo_modelo,
-        temperature=temperatura,
-        max_tokens=max_tokens,
-        reasoning_effort=esforco_raciocinio,
+        azure_api_key=azure_api_key,
+        azure_endpoint=azure_endpoint,
+        azure_deployment=azure_deployment,
+        api_version=api_version,
+        model_label=model_label,
+        temperature=_read_float('CHATBOT_TEMPERATURE'),
+        max_tokens=_read_int('CHATBOT_MAX_TOKENS'),
+        reasoning_effort=_read_reasoning_effort('CHATBOT_REASONING_EFFORT'),
     )

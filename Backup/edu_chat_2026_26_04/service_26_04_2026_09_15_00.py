@@ -103,19 +103,19 @@ class EducationalChatbot:
             ConfigurationError: quando a configuração do ambiente está
             inconsistente.
         '''
-        mensagem_limpa = user_message.strip()
-        if not mensagem_limpa:
+        clean_message = user_message.strip()
+        if not clean_message:
             raise ChatbotError('A mensagem do usuário não pode estar vazia.')
 
-        disciplina = get_subject(subject_key)
-        mensagens = [
-            {'role': 'system', 'content': build_system_prompt(disciplina.key, quiz_mode)}
+        subject = get_subject(subject_key)
+        messages = [
+            {'role': 'system', 'content': build_system_prompt(subject.key, quiz_mode)}
         ]
-        mensagens.extend(self._normalize_history(history))
-        mensagens.append({'role': 'user', 'content': mensagem_limpa})
+        messages.extend(self._normalize_history(history))
+        messages.append({'role': 'user', 'content': clean_message})
 
         try:
-            resposta = self._create_completion(mensagens)
+            response = self._create_completion(messages)
         except NotFoundError as exc:
             LOGGER.exception('Azure OpenAI retornou 404 ao responder a pergunta')
             raise ChatbotError(
@@ -133,13 +133,13 @@ class EducationalChatbot:
                 'Verifique a conexão, as variáveis do Azure OpenAI e tente novamente.'
             ) from exc
 
-        conteudo = resposta.choices[0].message.content
-        if not conteudo:
+        content = response.choices[0].message.content
+        if not content:
             raise ChatbotError(
                 'O modelo retornou uma resposta vazia. Tente reformular a pergunta.'
             )
 
-        return conteudo.strip()
+        return content.strip()
 
     def _create_completion(self, messages: list[dict[str, str]]):
         '''Tenta gerar uma completion usando estratégias compatíveis com vários modelos.
@@ -185,17 +185,17 @@ class EducationalChatbot:
             ChatbotError: quando a rotina não consegue montar uma requisição
             válida por motivos internos inesperados.
         '''
-        estrategias_requisicao = []
+        request_strategies = []
 
         if self.settings.reasoning_effort != 'none':
-            estrategias_requisicao.append(
+            request_strategies.append(
                 {
                     'max_completion_tokens': self.settings.max_tokens,
                     'reasoning_effort': self.settings.reasoning_effort,
                 }
             )
 
-        estrategias_requisicao.extend(
+        request_strategies.extend(
             [
                 {'max_completion_tokens': self.settings.max_tokens},
                 {
@@ -205,21 +205,21 @@ class EducationalChatbot:
             ]
         )
 
-        ultimo_erro: BadRequestError | None = None
-        for estrategia in estrategias_requisicao:
+        last_error: BadRequestError | None = None
+        for strategy in request_strategies:
             try:
                 return self.client.chat.completions.create(
                     model=self.settings.azure_deployment,
                     messages=messages,
-                    **estrategia,
+                    **strategy,
                 )
             except BadRequestError as exc:
                 if not self._is_parameter_compatibility_error(exc):
                     raise
-                ultimo_erro = exc
+                last_error = exc
 
-        if ultimo_erro is not None:
-            raise ultimo_erro
+        if last_error is not None:
+            raise last_error
 
         raise ChatbotError('Nao foi possivel montar a requisicao para o modelo configurado.')
 
@@ -247,19 +247,19 @@ class EducationalChatbot:
             list[dict[str, str]]: histórico limpo, com apenas mensagens úteis e
             em formato compatível com o SDK.
         '''
-        historico_normalizado: list[dict[str, str]] = []
+        normalized: list[dict[str, str]] = []
 
         for item in history:
             if not isinstance(item, dict):
                 continue
 
-            papel = str(item.get('role', '')).strip().lower()
-            conteudo = str(item.get('content', '')).strip()
-            if papel in {'user', 'assistant'} and conteudo:
-                historico_normalizado.append({'role': papel, 'content': conteudo})
+            role = str(item.get('role', '')).strip().lower()
+            content = str(item.get('content', '')).strip()
+            if role in {'user', 'assistant'} and content:
+                normalized.append({'role': role, 'content': content})
 
         # Limita o histórico para controlar latência e custo sem perder contexto recente.
-        return historico_normalizado[-10:]
+        return normalized[-10:]
 
     @staticmethod
     def _is_parameter_compatibility_error(exc: BadRequestError) -> bool:
@@ -284,17 +284,17 @@ class EducationalChatbot:
             bool: ``True`` quando o erro sugere incompatibilidade de parâmetro e
             ``False`` para os demais cenários.
         '''
-        corpo_erro = exc.body if isinstance(exc.body, dict) else {}
-        erro = corpo_erro.get('error', {}) if isinstance(corpo_erro, dict) else {}
-        mensagem = str(erro.get('message', '')).lower()
-        codigo = str(erro.get('code', '')).lower()
+        error_body = exc.body if isinstance(exc.body, dict) else {}
+        error = error_body.get('error', {}) if isinstance(error_body, dict) else {}
+        message = str(error.get('message', '')).lower()
+        code = str(error.get('code', '')).lower()
 
-        marcadores_compatibilidade = (
+        compatibility_markers = (
             'unsupported parameter',
             'unsupported value',
             'not supported with this model',
         )
 
-        return codigo in {'unsupported_parameter', 'unsupported_value'} or any(
-            marcador in mensagem for marcador in marcadores_compatibilidade
+        return code in {'unsupported_parameter', 'unsupported_value'} or any(
+            marker in message for marker in compatibility_markers
         )

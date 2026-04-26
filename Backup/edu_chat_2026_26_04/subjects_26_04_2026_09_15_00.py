@@ -146,7 +146,7 @@ def list_subjects() -> list[dict[str, object]]:
         list[dict[str, object]]: lista ordenada de disciplinas prontas para uso
         em templates HTML, respostas JSON e menus do terminal.
     '''
-    return [asdict(disciplina) for disciplina in SUBJECTS.values()]
+    return [asdict(subject) for subject in SUBJECTS.values()] # asdict é uma função do módulo dataclasses que converte um dataclass em um dicionário, preservando os campos e seus valores. Isso facilita a serialização para JSON e o uso em templates HTML, onde um formato de dicionário é mais conveniente do que um objeto dataclass.
 
 
 def build_system_prompt(subject_key: str, quiz_mode: bool = False) -> str:
@@ -167,11 +167,11 @@ def build_system_prompt(subject_key: str, quiz_mode: bool = False) -> str:
         str: prompt completo e pronto para ser enviado como mensagem ``system``
         ao modelo de linguagem.
     '''
-    disciplina = get_subject(subject_key)
+    subject = get_subject(subject_key)
 
-    prompt_base = f'''
-Você é um professor particular de {disciplina.label} para estudantes do ensino médio brasileiro.
-Seu foco principal é ensinar {disciplina.focus_topics}.
+    base_prompt = f'''
+Você é um professor particular de {subject.label} para estudantes do ensino médio brasileiro.
+Seu foco principal é ensinar {subject.focus_topics}.
 
 Objetivos de resposta:
 - Responder sempre em português do Brasil.
@@ -181,14 +181,14 @@ Objetivos de resposta:
 - Sempre que fizer sentido, usar um exemplo prático do cotidiano.
 - Se houver erro conceitual na pergunta do aluno, corrigir com cuidado e explicar o porquê.
 - Se não souber algo com segurança, dizer isso claramente em vez de inventar.
-- Manter o foco em {disciplina.label}, reconduzindo educadamente perguntas muito fora do tema.
+- Manter o foco em {subject.label}, reconduzindo educadamente perguntas muito fora do tema.
 - Encerrar respostas com uma dica de estudo ou uma pergunta curta para reforço, quando isso agregar valor.
 '''.strip()
 
     if not quiz_mode:
-        return prompt_base
+        return base_prompt
 
-    prompt_quiz = '''
+    quiz_prompt = '''
 
 Modo atual: quiz guiado.
 - Faça uma pergunta por vez.
@@ -198,4 +198,4 @@ Modo atual: quiz guiado.
 - Não entregue uma lista longa de perguntas de uma vez.
 '''.rstrip()
 
-    return f'{prompt_base}\n{prompt_quiz}'
+    return f'{base_prompt}\n{quiz_prompt}'

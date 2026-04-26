@@ -2,26 +2,32 @@ import os
 import unittest
 from unittest.mock import patch
 
-from edu_chat.config import ConfigurationError, load_settings
+from edu_chat.config import ConfigurationError, _normalize_azure_endpoint, load_settings
 
 
 class ConfigTestCase(unittest.TestCase):
-    def test_load_settings_rejects_invalid_endpoint(self) -> None:
-        """Confirma que o carregamento rejeita endpoints sem protocolo HTTP."""
-        fake_env = {
-            "AZURE_OPENAI_API_KEY": "fake-key",
-            "AZURE_ENDPOINT": "meu-recurso-sem-protocolo",
-            "AZURE_DEPLOYMENT": "gpt-5.3-chat",
-            "AZURE_API_VERSION": "2025-04-01-preview",
-            "OPENAI_MODEL": "gpt-5.3-chat",
-            "CHATBOT_TEMPERATURE": "1",
-            "CHATBOT_MAX_TOKENS": "350",
-            "CHATBOT_REASONING_EFFORT": "minimal",
-        }
+    def test_normalize_azure_endpoint_strips_path_and_extracts_api_version(self) -> None:
+        """Valida a normalização de endpoint copiado com caminho e query string.
 
-        with patch.dict(os.environ, fake_env, clear=True):
-            with self.assertRaises(ConfigurationError):
-                load_settings()
+        O teste assegura que a função remove partes inadequadas para o SDK,
+        preservando a base do recurso e extraindo a versão da API quando ela
+        vier embutida na URL original.
+        """
+        endpoint, api_version = _normalize_azure_endpoint(
+            "https://meu-recurso.cognitiveservices.azure.com/openai/responses?api-version=2025-04-01-preview"
+        )
+
+        self.assertEqual(endpoint, "https://meu-recurso.cognitiveservices.azure.com")
+        self.assertEqual(api_version, "2025-04-01-preview")
+
+    def test_normalize_azure_endpoint_rejects_invalid_value(self) -> None:
+        """Confirma que valores sem formato de URL são rejeitados explicitamente.
+
+        Esse cenário evita que configurações malformadas avancem para o runtime
+        e gerem erros mais difíceis de diagnosticar.
+        """
+        with self.assertRaises(ConfigurationError):
+            _normalize_azure_endpoint("meu-recurso-sem-protocolo")
 
     def test_load_settings_requires_all_variables_without_defaults(self) -> None:
         """Verifica se a carga falha quando variáveis obrigatórias estão ausentes.
@@ -31,7 +37,10 @@ class ConfigTestCase(unittest.TestCase):
         """
         fake_env = {
             "AZURE_OPENAI_API_KEY": "fake-key",
-            "AZURE_ENDPOINT": "https://meu-recurso.cognitiveservices.azure.com",
+            "AZURE_ENDPOINT": (
+                "https://meu-recurso.cognitiveservices.azure.com/"
+                "openai/responses?api-version=2025-04-01-preview"
+            ),
             "AZURE_DEPLOYMENT": "gpt-5.3-chat",
         }
 
@@ -47,7 +56,10 @@ class ConfigTestCase(unittest.TestCase):
         """
         fake_env = {
             "AZURE_OPENAI_API_KEY": "fake-key",
-            "AZURE_ENDPOINT": "https://meu-recurso.cognitiveservices.azure.com",
+            "AZURE_ENDPOINT": (
+                "https://meu-recurso.cognitiveservices.azure.com/"
+                "openai/responses?api-version=2025-04-01-preview"
+            ),
             "AZURE_DEPLOYMENT": "gpt-5.3-chat",
             "AZURE_API_VERSION": "2025-04-01-preview",
             "OPENAI_MODEL": "gpt-5.3-chat",

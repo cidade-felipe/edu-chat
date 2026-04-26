@@ -336,7 +336,8 @@ Responsável por:
 
 - carregar variáveis do `.env`;
 - validar campos obrigatórios;
-- validar o endpoint do Azure;
+- normalizar o endpoint do Azure;
+- verificar consistência de `api-version` na configuração;
 - centralizar parâmetros operacionais do chatbot.
 
 Esse módulo foi importante para corrigir um problema real ocorrido durante a integração.
@@ -344,8 +345,7 @@ Esse módulo foi importante para corrigir um problema real ocorrido durante a in
 Fato: o endpoint havia sido configurado com a URL completa da rota, e não com a base do recurso.
 Fato: isso causava erro `404 Resource not found`.
 Fato: na versão atual, todas as variáveis críticas passaram a ser obrigatórias no `.env`, sem defaults silenciosos.
-Fato: a implementação também foi simplificada, deixando de tentar corrigir automaticamente URLs muito fora do padrão esperado.
-Opinião técnica: essa mudança foi melhor para o projeto porque reduz complexidade, deixa a leitura mais direta e reforça a responsabilidade de manter o `.env` correto.
+Opinião técnica: tratar isso no código foi melhor do que depender apenas de configuração manual perfeita, porque reduz risco operacional e evita execução com ambiente parcialmente inválido.
 
 ### 10.2 `edu_chat/subjects.py`
 
@@ -382,9 +382,9 @@ Responsável pela aplicação Flask e pelas rotas:
 
 Na versão atual, o arquivo também passou a:
 
+- interpretar flags booleanas do ambiente de forma padronizada;
 - habilitar `ssl_context="adhoc"` quando `FLASK_HTTPS=1`;
-- validar a presença da biblioteca `cryptography` antes de subir em HTTPS;
-- concentrar a lógica de bootstrap local diretamente no bloco principal de execução.
+- validar previamente a presença da biblioteca `cryptography` para evitar erro obscuro ao subir o servidor.
 
 ### 10.5 `terminal_chat.py`
 
@@ -470,7 +470,7 @@ Os testes cobrem:
 
 - carregamento de rotas principais;
 - consistência das disciplinas;
-- validação de endpoint;
+- normalização de endpoint;
 - leitura correta de configuração;
 - estratégia de fallback para compatibilidade de modelos.
 
@@ -566,9 +566,8 @@ Consequência:
 
 Solução adotada:
 
-- simplificação da regra de configuração;
-- exigência de `AZURE_ENDPOINT` já correto no `.env`;
-- validação básica para garantir que o valor seja uma URL HTTP válida.
+- normalização automática do endpoint para a base do recurso;
+- leitura opcional da `api-version` presente na própria URL.
 
 #### Problema 2, parâmetros incompatíveis com o deployment
 
@@ -712,8 +711,7 @@ Na versão atual, o projeto exige definição explícita de:
 - `CHATBOT_REASONING_EFFORT`.
 
 Fato: não há mais defaults silenciosos para essas chaves.
-Fato: a configuração também deixou de depender de várias funções auxiliares pequenas e passou a ser validada de forma mais linear no `load_settings`.
-Opinião técnica: isso reduz ambiguidade, acelera diagnóstico de falha e deixa o código mais simples de manter.
+Opinião técnica: isso reduz ambiguidade, acelera diagnóstico de falha e evita comportamento inesperado em demonstração ou uso real.
 
 ### 15.2 Tratamento de erros de inferência
 
@@ -836,9 +834,9 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 17.2 Problema de integração, erro 404 no Azure
 
-**Sintoma:** `404 Resource not found`.  
-**Causa:** endpoint configurado com caminho incorreto.  
-**Solução:** exigir `AZURE_ENDPOINT` correto no `.env` e validar apenas o formato básico no carregamento.
+**Sintoma:** `404 Resource not found`.
+**Causa:** endpoint configurado com caminho incorreto.
+**Solução:** normalização automática do `AZURE_ENDPOINT`.
 
 ### 17.3 Problema de compatibilidade, parâmetros não suportados
 
@@ -876,7 +874,7 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 18.1 Testes automatizados
 
-No momento da atualização desta documentação, foram executados **11 testes automatizados**, todos aprovados.
+No momento da atualização desta documentação, foram executados **12 testes automatizados**, todos aprovados.
 
 Esses testes validam:
 
@@ -885,7 +883,7 @@ Esses testes validam:
 - consistência das disciplinas;
 - modo quiz;
 - existência de sugestões específicas para o modo quiz;
-- validação de endpoint;
+- normalização de endpoint;
 - leitura de configuração;
 - fallback de parâmetros do modelo.
 
