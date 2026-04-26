@@ -5,7 +5,7 @@
 **Disciplina:** Inteligência Artificial
 **Professora:** Eliane Pozzebon
 **Acadêmico:** Felipe Cidade Soares
-**Data:** 22 de abril de 2026
+**Data:** 22 de abril de 2026  
 
 ---
 
@@ -289,7 +289,6 @@ edu-chat/
 |-- DOCUMENTACAO_PROJETO_IA.md
 |-- edu_chat/
 |   |-- __init__.py
-|   |-- ia.py
 |   |-- config.py
 |   |-- service.py
 |   |-- subjects.py
@@ -310,7 +309,7 @@ edu-chat/
 |   |-- test_app.py
 |   |-- test_subjects.py
 |   |-- test_config.py
-|   |-- test_ia.py
+|   |-- test_service.py
 |-- Backup/
 ```
 
@@ -325,30 +324,27 @@ edu-chat/
 - `static/css/style.css`: identidade visual e responsividade;
 - `static/image/`: assets visuais usados na marca e nos ícones das disciplinas;
 - `static/js/app.js`: comportamento do frontend;
-- `edu_chat/ia.py`: módulo simples que concentra configuração e chamada ao Azure OpenAI;
-- `tests/`: testes automatizados do projeto;
-- `ROTEIRO_APRESENTACAO.md`: roteiro detalhado para apresentação e explicação das funções.
+- `tests/`: testes automatizados do projeto.
 
 ---
 
 ## 10. Descrição detalhada dos módulos
 
-### 10.1 `edu_chat/ia.py`
+### 10.1 `edu_chat/config.py`
 
 Responsável por:
 
-- carregar variáveis do `.env` diretamente com `os.getenv`;
-- validar o mínimo necessário para execução (campos faltando, endpoint, tipos numéricos);
-- criar o cliente `AzureOpenAI`;
-- montar mensagens com prompt por disciplina e histórico;
-- chamar a Responses API (`responses.create(input=...)`) e devolver texto final.
+- carregar variáveis do `.env`;
+- validar campos obrigatórios;
+- validar o endpoint do Azure;
+- centralizar parâmetros operacionais do chatbot.
 
 Esse módulo foi importante para corrigir um problema real ocorrido durante a integração.
 
 Fato: o endpoint havia sido configurado com a URL completa da rota, e não com a base do recurso.
 Fato: isso causava erro `404 Resource not found`.
 Fato: na versão atual, todas as variáveis críticas passaram a ser obrigatórias no `.env`, sem defaults silenciosos.
-Fato: o projeto consolidou configuração e chamada ao modelo em um único arquivo para reduzir complexidade.
+Fato: a implementação também foi simplificada, deixando de tentar corrigir automaticamente URLs muito fora do padrão esperado.
 Opinião técnica: essa mudança foi melhor para o projeto porque reduz complexidade, deixa a leitura mais direta e reforça a responsabilidade de manter o `.env` correto.
 
 ### 10.2 `edu_chat/subjects.py`
@@ -363,11 +359,17 @@ Responsável por:
 
 Esse módulo concentra o “comportamento pedagógico” do chatbot.
 
-### 10.3 `edu_chat/config.py` e `edu_chat/service.py`
+### 10.3 `edu_chat/service.py`
 
-Fato: nesta versão do projeto, os papéis de configuração e serviço foram consolidados em `edu_chat/ia.py` para simplificar leitura e manutenção.
-Inferência: isso reduz duplicação de lógica e acelera entendimento do fluxo principal (configuração -> chamada ao modelo -> resposta).
-Opinião técnica: para um projeto acadêmico, essa consolidação é positiva porque diminui complexidade acidental e facilita apresentação.
+É o núcleo da solução. Responsável por:
+
+- construir o cliente `AzureOpenAI`;
+- montar o histórico da conversa;
+- enviar mensagens ao modelo;
+- aplicar fallback de parâmetros compatíveis com diferentes tipos de deployment;
+- tratar erros previsíveis com mensagens compreensíveis.
+
+Esse módulo recebeu uma melhoria relevante para compatibilidade com modelos reasoning.
 
 ### 10.4 `app.py`
 
@@ -749,8 +751,8 @@ Opinião técnica: para desenvolvimento local, essa solução tem ótima relaç�
 
 ### 15.5 Manutenção
 
-Fato: a lógica de negócio está separada da interface.
-Inferência: isso facilita troca futura de frontend, modelo ou estratégia de resposta.
+Fato: a lógica de negócio está separada da interface.  
+Inferência: isso facilita troca futura de frontend, modelo ou estratégia de resposta.  
 Opinião técnica: esse é um ponto forte do projeto, porque melhora sustentabilidade da solução ao longo do tempo.
 
 ### 15.6 Documentação interna do código
@@ -796,7 +798,7 @@ Opinião técnica: limitar o histórico recente é uma decisão equilibrada para
 
 #### Decisão 4, limpar conversa ao trocar disciplina
 
-Fato: manter histórico de uma disciplina ao migrar para outra pode contaminar contexto.
+Fato: manter histórico de uma disciplina ao migrar para outra pode contaminar contexto.  
 Opinião técnica: reiniciar a conversa foi a escolha correta para preservar coerência da resposta.
 
 #### Decisão 5, usar assets visuais em `static/`
@@ -834,8 +836,8 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 17.2 Problema de integração, erro 404 no Azure
 
-**Sintoma:** `404 Resource not found`.
-**Causa:** endpoint configurado com caminho incorreto.
+**Sintoma:** `404 Resource not found`.  
+**Causa:** endpoint configurado com caminho incorreto.  
 **Solução:** exigir `AZURE_ENDPOINT` correto no `.env` e validar apenas o formato básico no carregamento.
 
 ### 17.3 Problema de compatibilidade, parâmetros não suportados
@@ -846,26 +848,26 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 17.4 Problema de exibição em terminal
 
-**Sintoma:** erro de encoding ao imprimir caracteres Unicode.
-**Causa:** limitação de encoding do terminal Windows.
+**Sintoma:** erro de encoding ao imprimir caracteres Unicode.  
+**Causa:** limitação de encoding do terminal Windows.  
 **Solução:** validação com saída em `unicode_escape` durante o teste técnico.
 
 ### 17.5 Problema de renderização de imagens na interface
 
-**Sintoma:** logo quebrado e caminho de imagem aparecendo como texto dentro das disciplinas.
-**Causa:** arquivos fora do padrão de `static` do Flask e renderização direta do valor `icon` como texto em vez de `<img>`.
+**Sintoma:** logo quebrado e caminho de imagem aparecendo como texto dentro das disciplinas.  
+**Causa:** arquivos fora do padrão de `static` do Flask e renderização direta do valor `icon` como texto em vez de `<img>`.  
 **Solução:** reorganização dos assets em `static/image/`, uso de `url_for('static', ...)` no template, tratamento condicional para ícones visuais e ajuste do JavaScript para usar imagem também nos avatares da conversa.
 
 ### 17.6 Problema de renderização de Markdown nas respostas
 
-**Sintoma:** marcações como `**`, `##` e listas apareciam literalmente na conversa.
-**Causa:** as mensagens eram exibidas como texto puro, sem conversão de Markdown para HTML.
+**Sintoma:** marcações como `**`, `##` e listas apareciam literalmente na conversa.  
+**Causa:** as mensagens eram exibidas como texto puro, sem conversão de Markdown para HTML.  
 **Solução:** implementação de renderização local de Markdown com sanitização básica e estilização específica no CSS.
 
 ### 17.7 Problema de HTTPS local com certificado ad-hoc
 
-**Sintoma:** ao ativar HTTPS local, o Flask encerrava a execução com erro relacionado a certificado ad-hoc.
-**Causa:** a biblioteca `cryptography` não estava instalada no ambiente virtual.
+**Sintoma:** ao ativar HTTPS local, o Flask encerrava a execução com erro relacionado a certificado ad-hoc.  
+**Causa:** a biblioteca `cryptography` não estava instalada no ambiente virtual.  
 **Solução:** inclusão de `cryptography` no `requirements.txt` e validação explícita no `app.py` para exibir mensagem clara quando a dependência estiver ausente.
 
 ---
@@ -874,7 +876,7 @@ Opinião técnica: ativar HTTPS por variável de ambiente foi a melhor escolha, 
 
 ### 18.1 Testes automatizados
 
-No momento da atualização desta documentação, foram executados **10 testes automatizados**, todos aprovados.
+No momento da atualização desta documentação, foram executados **11 testes automatizados**, todos aprovados.
 
 Esses testes validam:
 
@@ -885,8 +887,7 @@ Esses testes validam:
 - existência de sugestões específicas para o modo quiz;
 - validação de endpoint;
 - leitura de configuração;
-- fallback simples quando `reasoning_effort` não é suportado;
-- comportamento do módulo `edu_chat/ia.py`.
+- fallback de parâmetros do modelo.
 
 ### 18.2 Validação manual
 
