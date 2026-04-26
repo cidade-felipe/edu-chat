@@ -115,7 +115,7 @@ class EducationalChatbot:
         mensagens.append({'role': 'user', 'content': mensagem_limpa})
 
         try:
-            resposta = self._create_response(mensagens)
+            resposta = self._create_completion(mensagens)
         except NotFoundError as exc:
             LOGGER.exception('Azure OpenAI retornou 404 ao responder a pergunta')
             raise ChatbotError(
@@ -133,7 +133,7 @@ class EducationalChatbot:
                 'Verifique a conexão, as variáveis do Azure OpenAI e tente novamente.'
             ) from exc
 
-        conteudo = self._extract_response_text(resposta)
+        conteudo = resposta.choices[0].message.content
         if not conteudo:
             raise ChatbotError(
                 'O modelo retornou uma resposta vazia. Tente reformular a pergunta.'
@@ -141,18 +141,17 @@ class EducationalChatbot:
 
         return conteudo.strip()
 
-    def _create_response(self, messages: list[dict[str, str]]):
-        '''Tenta gerar uma resposta usando a Responses API com fallback de parâmetros.
+    def _create_completion(self, messages: list[dict[str, str]]):
+        '''Tenta gerar uma completion usando estratégias compatíveis com vários modelos.
 
-        O deployment atual do projeto usa a Responses API. Nela, o histórico da
-        conversa é enviado em ``input`` e não em ``messages``. Como alguns
-        modelos ainda diferem nos parâmetros aceitos, a rotina aplica uma
-        sequência de estratégias:
+        O projeto precisa funcionar tanto com deployments tradicionais quanto
+        com modelos reasoning, que possuem diferenças importantes nos parâmetros
+        aceitos. Por isso, este método aplica uma sequência de estratégias:
 
-        1. tenta parâmetros modernos, com ``max_output_tokens`` e
+        1. tenta parâmetros mais modernos, com ``max_completion_tokens`` e
            ``reasoning_effort``;
         2. tenta uma variação sem ``reasoning_effort``;
-        3. cai para uma chamada com ``max_output_tokens`` e ``temperature``.
+        3. cai para o formato clássico com ``max_tokens`` e ``temperature``.
 
         Esse fallback reduz quebras por incompatibilidade de modelo sem exigir
         que o restante da aplicação conheça detalhes de cada deployment.
@@ -162,7 +161,7 @@ class EducationalChatbot:
         - ``AZURE_DEPLOYMENT``:
           identifica o deployment consultado em todas as estratégias.
         - ``CHATBOT_MAX_TOKENS``:
-          alimenta ``max_output_tokens``.
+          alimenta ``max_completion_tokens`` ou ``max_tokens``.
         - ``CHATBOT_REASONING_EFFORT``:
           é usado na primeira tentativa para modelos reasoning.
         - ``CHATBOT_TEMPERATURE``:
@@ -175,8 +174,7 @@ class EducationalChatbot:
         menor e o ganho de robustez é maior.
 
         Args:
-            messages: lista completa de mensagens que será enviada ao modelo em
-            ``input``.
+            messages: lista completa de mensagens que será enviada ao modelo.
 
         Returns:
             object: objeto de resposta retornado pelo SDK do OpenAI/Azure.
@@ -192,16 +190,16 @@ class EducationalChatbot:
         if self.settings.reasoning_effort != 'none':
             estrategias_requisicao.append(
                 {
-                    'max_output_tokens': self.settings.max_tokens,
+                    'max_completion_tokens': self.settings.max_tokens,
                     'reasoning_effort': self.settings.reasoning_effort,
                 }
             )
 
         estrategias_requisicao.extend(
             [
-                {'max_output_tokens': self.settings.max_tokens},
+                {'max_completion_tokens': self.settings.max_tokens},
                 {
-                    'max_output_tokens': self.settings.max_tokens,
+                    'max_tokens': self.settings.max_tokens,
                     'temperature': self.settings.temperature,
                 },
             ]
@@ -210,23 +208,11 @@ class EducationalChatbot:
         ultimo_erro: BadRequestError | None = None
         for estrategia in estrategias_requisicao:
             try:
-                return self.client.responses.create(
+                return self.client.chat.completions.create(
                     model=self.settings.azure_deployment,
-                    input=messages,
+                    messages=messages,
                     **estrategia,
                 )
-            except TypeError as exc:
-                # Alguns builds/targets da SDK não aceitam `reasoning_effort` na Responses API.
-                # Quando isso acontece, refazemos a mesma tentativa removendo apenas esse campo.
-                if "reasoning_effort" in estrategia and "reasoning_effort" in str(exc):
-                    estrategia_sem_esforco = dict(estrategia)
-                    estrategia_sem_esforco.pop("reasoning_effort", None)
-                    return self.client.responses.create(
-                        model=self.settings.azure_deployment,
-                        input=messages,
-                        **estrategia_sem_esforco,
-                    )
-                raise
             except BadRequestError as exc:
                 if not self._is_parameter_compatibility_error(exc):
                     raise
@@ -236,33 +222,6 @@ class EducationalChatbot:
             raise ultimo_erro
 
         raise ChatbotError('Nao foi possivel montar a requisicao para o modelo configurado.')
-
-    @staticmethod
-    def _extract_response_text(resposta) -> str:
-        '''Extrai texto útil do objeto retornado pela Responses API.
-
-        A SDK moderna já oferece ``output_text`` em muitos casos, que é o
-        caminho preferido por ser mais simples. Como fallback, a função também
-        percorre a estrutura de ``output`` para encontrar blocos textuais.
-
-        Args:
-            resposta: objeto de resposta devolvido pela SDK OpenAI.
-
-        Returns:
-            str: texto final extraído da resposta, ou string vazia quando nada
-            utilizável for encontrado.
-        '''
-        texto_saida = getattr(resposta, 'output_text', '') or ''
-        if texto_saida:
-            return str(texto_saida)
-
-        for item in getattr(resposta, 'output', []) or []:
-            for conteudo in getattr(item, 'content', []) or []:
-                texto = getattr(conteudo, 'text', '')
-                if texto:
-                    return str(texto)
-
-        return ''
 
     @staticmethod
     def _normalize_history(history: Iterable[dict[str, str]]) -> list[dict[str, str]]:

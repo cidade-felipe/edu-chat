@@ -215,18 +215,6 @@ class EducationalChatbot:
                     input=messages,
                     **estrategia,
                 )
-            except TypeError as exc:
-                # Alguns builds/targets da SDK não aceitam `reasoning_effort` na Responses API.
-                # Quando isso acontece, refazemos a mesma tentativa removendo apenas esse campo.
-                if "reasoning_effort" in estrategia and "reasoning_effort" in str(exc):
-                    estrategia_sem_esforco = dict(estrategia)
-                    estrategia_sem_esforco.pop("reasoning_effort", None)
-                    return self.client.responses.create(
-                        model=self.settings.azure_deployment,
-                        input=messages,
-                        **estrategia_sem_esforco,
-                    )
-                raise
             except BadRequestError as exc:
                 if not self._is_parameter_compatibility_error(exc):
                     raise

@@ -8,28 +8,18 @@ from edu_chat.service import EducationalChatbot
 
 class _FakeResponse:
     def __init__(self, content: str) -> None:
-        """Constrói uma resposta mínima compatível com a Responses API nos testes.
+        """Constrói uma resposta mínima compatível com o formato esperado nos testes.
 
-        A estrutura replica os caminhos usados pelo código de produção:
-        `output_text` e `output[].content[].text`. Isso evita dependência de
-        objetos reais da SDK durante testes unitários.
+        A estrutura replica apenas o trecho acessado pelo código de produção,
+        evitando dependência de objetos reais do SDK durante testes unitários.
 
         Args:
             content: texto que será devolvido como conteúdo da resposta simulada.
         """
-        self.output_text = content
-        self.output = [
-            type(
-                "Message",
-                (),
-                {
-                    "content": [type("Content", (), {"text": content})()],
-                },
-            )()
-        ]
+        self.choices = [type("Choice", (), {"message": type("Message", (), {"content": content})()})()]
 
 
-class _FakeResponses:
+class _FakeCompletions:
     def __init__(self, behaviors: list[object]) -> None:
         """Configura uma sequência controlada de comportamentos para chamadas fake.
 
@@ -66,14 +56,24 @@ class _FakeResponses:
         return behavior
 
 
+class _FakeChat:
+    def __init__(self, completions: _FakeCompletions) -> None:
+        """Agrupa o mock de completions na mesma estrutura do cliente real.
+
+        Args:
+            completions: objeto responsável por simular o método ``create``.
+        """
+        self.completions = completions
+
+
 class _FakeClient:
-    def __init__(self, responses: _FakeResponses) -> None:
+    def __init__(self, completions: _FakeCompletions) -> None:
         """Expõe um cliente fake com a mesma forma usada pelo código de produção.
 
         Args:
-            responses: mock da camada de responses usada pelo serviço.
+            completions: mock da camada de completions usada pelo serviço.
         """
-        self.responses = responses
+        self.chat = _FakeChat(completions)
 
 
 def _build_bad_request(message: str, code: str) -> BadRequestError:
@@ -129,16 +129,15 @@ class ServiceTestCase(unittest.TestCase):
         adequados, preservando o comportamento esperado para deployments desse
         tipo.
         """
-        responses = _FakeResponses([_FakeResponse("ok")])
+        completions = _FakeCompletions([_FakeResponse("ok")])
         chatbot = EducationalChatbot(settings=self.settings)
-        chatbot.client = _FakeClient(responses)
+        chatbot.client = _FakeClient(completions)
 
-        response = chatbot._create_response([{"role": "user", "content": "Oi"}])
+        response = chatbot._create_completion([{"role": "user", "content": "Oi"}])
 
-        self.assertEqual(response.output_text, "ok")
-        self.assertIn("max_output_tokens", responses.calls[0])
-        self.assertEqual(responses.calls[0]["reasoning_effort"], "minimal")
-        self.assertIn("input", responses.calls[0])
+        self.assertEqual(response.choices[0].message.content, "ok")
+        self.assertIn("max_completion_tokens", completions.calls[0])
+        self.assertEqual(completions.calls[0]["reasoning_effort"], "minimal")
 
     def test_create_completion_falls_back_to_standard_strategy(self) -> None:
         """Confirma o fallback para parâmetros clássicos após erros compatíveis.
@@ -146,7 +145,7 @@ class ServiceTestCase(unittest.TestCase):
         O teste simula duas falhas por parâmetros não suportados e verifica se o
         serviço tenta a estratégia tradicional na terceira chamada.
         """
-        responses = _FakeResponses(
+        completions = _FakeCompletions(
             [
                 _build_bad_request(
                     "Unsupported parameter: 'reasoning_effort' is not supported with this model.",
@@ -160,13 +159,13 @@ class ServiceTestCase(unittest.TestCase):
             ]
         )
         chatbot = EducationalChatbot(settings=self.settings)
-        chatbot.client = _FakeClient(responses)
+        chatbot.client = _FakeClient(completions)
 
-        response = chatbot._create_response([{"role": "user", "content": "Oi"}])
+        response = chatbot._create_completion([{"role": "user", "content": "Oi"}])
 
-        self.assertEqual(response.output_text, "resposta")
-        self.assertIn("max_output_tokens", responses.calls[2])
-        self.assertIn("temperature", responses.calls[2])
+        self.assertEqual(response.choices[0].message.content, "resposta")
+        self.assertIn("max_tokens", completions.calls[2])
+        self.assertIn("temperature", completions.calls[2])
 
 
 if __name__ == "__main__":
