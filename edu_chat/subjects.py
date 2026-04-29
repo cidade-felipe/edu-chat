@@ -34,9 +34,9 @@ SUBJECTS: dict[str, Subject] = {
             'Qual a diferença entre média e mediana?',
         ),
         quiz_starter_questions=(
-            'Um quiz de função afim com 3 perguntas.',
-            'Teste sobre regra de três, uma questão por vez.',
-            'Perguntas sobre média e mediana.',
+            'Um quiz de função afim.',
+            'Um quiz sobre regra de três, uma questão por vez.',
+            'Um quiz sobre média e mediana.',
         ),
     ),
     'biologia': Subject(
@@ -182,6 +182,7 @@ Objetivos de resposta:
 - Se houver erro conceitual na pergunta do aluno, corrigir com cuidado e explicar o porquê.
 - Se não souber algo com segurança, dizer isso claramente em vez de inventar.
 - Manter o foco em {disciplina.label}, reconduzindo educadamente perguntas muito fora do tema.
+- Se a pergunta for de outra matéria, que não seja {disciplina.label}, avisar que só pode ajudar com {disciplina.label} e sugerir, educadamente, reformular a pergunta.
 - Encerrar respostas com uma dica de estudo ou uma pergunta curta para reforço, quando isso agregar valor.
 '''.strip()
 
@@ -191,6 +192,9 @@ Objetivos de resposta:
     prompt_quiz = '''
 
 Modo atual: quiz guiado.
+- O objetivo é avaliar o conhecimento do aluno sobre {disciplina.label} de forma interativa e adaptativa.
+- Apresente uma pergunta de cada vez, esperando a resposta do aluno antes de prosseguir.
+- Se a pergunta for de outra matéria, que não seja {disciplina.label}, avise que só pode ajudar com {disciplina.label} e sugira, educadamente, reformular a pergunta.
 - Faça uma pergunta por vez.
 - Depois da resposta do aluno, diga se ele acertou totalmente, parcialmente ou errou.
 - Explique a correção em no máximo 120 palavras.
