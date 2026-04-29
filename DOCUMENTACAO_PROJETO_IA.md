@@ -185,7 +185,6 @@ Essa separação melhora legibilidade, manutenção e escalabilidade.
 ## 7. Arquitetura do sistema
 
 ### 7.1 Arquitetura lógica
-
 ```mermaid
 flowchart LR
     classDef user fill:#FFF4CC,stroke:#B7791F,color:#5B3A00,stroke-width:2px;
@@ -207,12 +206,12 @@ flowchart LR
     end
 
     subgraph CORE["Camada de Serviço"]
-        BOT[edu_chat.service.EducationalChatbot]:::service
+        BOT[edu_chat.ia.TutorIA]:::service
     end
 
     subgraph MOD["Módulos Internos"]
         SUB[edu_chat.subjects]:::module
-        CONF[edu_chat.config]:::module
+        IA[edu_chat.ia]:::module
     end
 
     EXT[Azure OpenAI]:::external
@@ -224,7 +223,7 @@ flowchart LR
     T --> BOT
 
     BOT --> SUB
-    BOT --> CONF
+    BOT --> IA
     BOT --> EXT
 
     style WEB fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
@@ -233,6 +232,8 @@ flowchart LR
     style MOD fill:#F7FAFC,stroke:#A0AEC0,stroke-width:1px
 
 ```
+
+Atualize... não estão mais sendo usados os service e o config, agora tem só o ia.
 
 ### 7.2 Motivo da arquitetura escolhida
 
