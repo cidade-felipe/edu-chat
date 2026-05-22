@@ -4,7 +4,7 @@ import os
 from typing import Any, Iterable
 
 from dotenv import load_dotenv
-from openai import AzureOpenAI
+from openai import AuthenticationError, AzureOpenAI
 
 from edu_chat.subjects import build_system_prompt, get_subject
 
@@ -104,6 +104,11 @@ class TutorIA:
 
         try:
             resp = self.client.responses.create(model=self.config["azure_deployment"], input=mensagens, **params)
+        except AuthenticationError as exc:
+            raise ErroChat(
+                "Falha de autenticação no Azure OpenAI. Confira se "
+                "AZURE_OPENAI_API_KEY pertence ao mesmo recurso do AZURE_ENDPOINT."
+            ) from exc
         except TypeError as exc:
             if "reasoning_effort" in params and "reasoning_effort" in str(exc):
                 params.pop("reasoning_effort", None)

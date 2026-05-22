@@ -1,5 +1,7 @@
 import unittest
 
+from openai import AuthenticationError
+
 from edu_chat.ia import TutorIA
 
 
@@ -12,9 +14,17 @@ class _FakeResponses:
     def __init__(self) -> None:
         self.calls: list[dict] = []
         self.raise_type_error_on_reasoning = True
+        self.raise_authentication_error = False
 
     def create(self, **kwargs):
         self.calls.append(kwargs)
+        if self.raise_authentication_error:
+            response = type(
+                "Response",
+                (),
+                {"request": None, "status_code": 401, "headers": {}, "text": ""},
+            )()
+            raise AuthenticationError("invalid key", response=response, body={})
         if self.raise_type_error_on_reasoning and "reasoning_effort" in kwargs:
             raise TypeError("unexpected keyword argument 'reasoning_effort'")
         return _FakeResponse("ok")
@@ -55,6 +65,20 @@ class IaTestCase(unittest.TestCase):
         self.assertIn("max_output_tokens", tutor.client.responses.calls[0])
         self.assertIn("reasoning_effort", tutor.client.responses.calls[0])
         self.assertNotIn("reasoning_effort", tutor.client.responses.calls[1])
+
+    def test_responder_transforms_authentication_error(self) -> None:
+        tutor = TutorIA(config=self.config)
+        tutor.client = _FakeClient()
+        tutor.client.responses.raise_type_error_on_reasoning = False
+        tutor.client.responses.raise_authentication_error = True
+
+        with self.assertRaisesRegex(Exception, "Falha de autenticação"):
+            tutor.responder(
+                historico=[],
+                mensagem_usuario="Oi",
+                chave_disciplina="matematica",
+                modo_quiz=False,
+            )
 
 
 if __name__ == "__main__":
