@@ -189,7 +189,7 @@ Objetivos de resposta:
     if not quiz_mode:
         return prompt_base
 
-    prompt_quiz = '''
+    prompt_quiz = f'''
 
 Modo atual: quiz guiado.
 - O objetivo é avaliar o conhecimento do aluno sobre {disciplina.label} de forma interativa e adaptativa.

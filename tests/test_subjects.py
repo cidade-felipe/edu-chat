@@ -22,6 +22,8 @@ class SubjectsTestCase(unittest.TestCase):
 
         self.assertIn("Modo atual: quiz guiado.", prompt)
         self.assertIn("Faça uma pergunta por vez.", prompt)
+        self.assertIn("Matemática", prompt)
+        self.assertNotIn("{disciplina.label}", prompt)
 
     def test_regular_prompt_mentions_teaching_style(self) -> None:
         """Confirma que o prompt padrão preserva a intenção pedagógica básica.

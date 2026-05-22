@@ -49,12 +49,13 @@ edu-chat/
 |-- app.py
 |-- terminal_chat.py
 |-- requirements.txt
+|-- README.md
 |-- DOCUMENTACAO_PROJETO_IA.md
+|-- codex.md
+|-- .env.exemple
 |-- edu_chat/
 |   |-- __init__.py
 |   |-- ia.py
-|   |-- config.py
-|   |-- service.py
 |   |-- subjects.py
 |-- static/
 |   |-- css/
@@ -225,3 +226,4 @@ python -m unittest discover -s tests -v
 O projeto também possui documentação acadêmica completa em:
 
 - [DOCUMENTACAO_PROJETO_IA.md](<c:\Users\felip\OneDrive\git_work\edu-chat\DOCUMENTACAO_PROJETO_IA.md:1>)
+- [codex.md](<c:\Users\felip\OneDrive\git_work\edu-chat\codex.md:1>): mapa técnico operacional do estado atual do repositório.

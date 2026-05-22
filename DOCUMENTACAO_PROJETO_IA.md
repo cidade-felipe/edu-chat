@@ -288,11 +288,11 @@ edu-chat/
 |-- requirements.txt
 |-- README.md
 |-- DOCUMENTACAO_PROJETO_IA.md
+|-- codex.md
+|-- .env.exemple
 |-- edu_chat/
 |   |-- __init__.py
 |   |-- ia.py
-|   |-- config.py
-|   |-- service.py
 |   |-- subjects.py
 |-- templates/
 |   |-- index.html
@@ -312,6 +312,7 @@ edu-chat/
 |   |-- test_subjects.py
 |   |-- test_config.py
 |   |-- test_ia.py
+|-- ROTEIRO_APRESENTACAO.md
 |-- Backup/
 ```
 
@@ -319,16 +320,15 @@ edu-chat/
 
 - `app.py`: ponto de entrada da interface web;
 - `terminal_chat.py`: versão em terminal;
-- `edu_chat/config.py`: leitura e validação das variáveis de ambiente;
+- `edu_chat/ia.py`: leitura de configuração, validação do ambiente e comunicação com o Azure OpenAI;
 - `edu_chat/subjects.py`: definição das disciplinas e dos prompts;
-- `edu_chat/service.py`: comunicação com o Azure OpenAI;
 - `templates/index.html`: estrutura visual da aplicação web;
 - `static/css/style.css`: identidade visual e responsividade;
 - `static/image/`: assets visuais usados na marca e nos ícones das disciplinas;
 - `static/js/app.js`: comportamento do frontend;
-- `edu_chat/ia.py`: módulo simples que concentra configuração e chamada ao Azure OpenAI;
 - `tests/`: testes automatizados do projeto;
 - `ROTEIRO_APRESENTACAO.md`: roteiro detalhado para apresentação e explicação das funções.
+- `codex.md`: mapa técnico operacional do estado atual do repositório.
 
 ---
 
@@ -364,7 +364,7 @@ Responsável por:
 
 Esse módulo concentra o “comportamento pedagógico” do chatbot.
 
-### 10.3 `edu_chat/config.py` e `edu_chat/service.py`
+### 10.3 Papéis consolidados em `edu_chat/ia.py`
 
 Fato: nesta versão do projeto, os papéis de configuração e serviço foram consolidados em `edu_chat/ia.py` para simplificar leitura e manutenção.
 Inferência: isso reduz duplicação de lógica e acelera entendimento do fluxo principal (configuração -> chamada ao modelo -> resposta).
@@ -578,7 +578,7 @@ Ao chamar `gpt-5.3-chat`, o modelo rejeitou:
 
 Solução adotada:
 
-- adoção de estratégia adaptativa em `service.py`;
+- adoção de estratégia adaptativa em `edu_chat/ia.py`;
 - tentativa inicial com `max_completion_tokens` e `reasoning_effort`;
 - fallback para parâmetros tradicionais apenas quando necessário.
 
