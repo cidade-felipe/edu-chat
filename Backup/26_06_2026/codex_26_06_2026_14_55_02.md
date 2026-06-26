@@ -1,0 +1,920 @@
+# Codex, entendimento detalhado do projeto EduChat
+
+Data da análise: 22/05/2026
+
+Este arquivo registra o entendimento técnico do projeto `edu-chat` no estado atual do repositório. Ele foi criado porque não existia um `codex.md` na raiz, e a regra operacional do projeto pede que esse arquivo exista e seja atualizado a cada mudança relevante.
+
+## Mudanças aplicadas em 22/05/2026
+
+Fato: após a análise inicial, foram aplicados ajustes de consistência e confiabilidade no repositório.
+
+Alterações realizadas:
+
+- correção do prompt de quiz em `edu_chat/subjects.py`, transformando o bloco específico do quiz em f-string para interpolar corretamente o nome da disciplina;
+- inclusão de teste de regressão em `tests/test_subjects.py` para garantir que `{disciplina.label}` não apareça literalmente no prompt final;
+- atualização de `.env.exemple` para usar `AZURE_ENDPOINT` como URL base do recurso Azure OpenAI;
+- atualização de `README.md` e `DOCUMENTACAO_PROJETO_IA.md` para refletir a estrutura real do projeto, sem listar `config.py` e `service.py` como arquivos existentes;
+- remoção de `ROTEIRO_APRESENTACAO.md` do `.gitignore`, porque o arquivo é citado como material de entrega;
+- atualização deste `codex.md` para registrar o novo estado do projeto.
+
+Inferência: esses ajustes reduzem risco de erro de configuração, melhoram a qualidade do modo quiz e deixam o repositório mais coerente para apresentação, manutenção e clonagem em outra máquina.
+
+Opinião técnica: foi melhor priorizar correções de consistência antes de adicionar novas funcionalidades, porque elas reduzem fricção real de uso e evitam que o avaliador ou outro desenvolvedor siga instruções incorretas.
+
+## 1. Visão geral do projeto
+
+Fato: o EduChat é um chatbot educacional em Python voltado para estudantes do ensino médio brasileiro.
+
+Fato: o projeto possui duas interfaces principais:
+
+- interface web com Flask;
+- interface de terminal com entrada e saída via linha de comando.
+
+Fato: as duas interfaces usam o mesmo núcleo de lógica, localizado principalmente em `edu_chat/ia.py` e `edu_chat/subjects.py`.
+
+Fato: a integração de IA é feita com Azure OpenAI usando a biblioteca oficial `openai` para Python.
+
+Fato: o projeto usa variáveis de ambiente carregadas com `python-dotenv`, normalmente vindas de um arquivo `.env`.
+
+Inferência: o projeto nasceu como atividade acadêmica de Inteligência Artificial, mas recebeu recursos extras além do requisito mínimo, principalmente interface web, modo quiz, assets visuais, renderização de Markdown e testes automatizados.
+
+Opinião técnica: para o escopo acadêmico, a arquitetura atual está bem adequada. Ela é simples, fácil de explicar e evita criar camadas demais para um projeto pequeno. Isso reduz custo de manutenção e facilita a apresentação.
+
+## 2. Objetivo funcional
+
+Fato: o chatbot responde dúvidas educacionais em português do Brasil, com foco em linguagem curta, simples e didática.
+
+Fato: as disciplinas suportadas são:
+
+- Matemática;
+- Biologia;
+- História;
+- Física.
+
+Fato: cada disciplina possui:
+
+- chave interna;
+- rótulo exibido na interface;
+- ícone visual;
+- descrição curta;
+- tópicos de foco;
+- título de destaque da interface;
+- descrição de destaque da interface;
+- perguntas sugeridas para modo explicação;
+- perguntas sugeridas para modo quiz.
+
+Inferência: o projeto tenta resolver uma dor prática de estudo, que é transformar dúvidas soltas em explicações guiadas e curtas. Isso reduz fricção para o aluno, principalmente em revisão antes de prova.
+
+Opinião técnica: o maior valor real do projeto está no encaixe entre contexto disciplinar, prompt específico e interface simples. Mesmo sem banco de dados ou autenticação, ele já entrega uma experiência utilizável para demonstração e estudo individual.
+
+## 3. Stack e dependências
+
+Fato: as dependências declaradas em `requirements.txt` são:
+
+- `Flask>=3.0,<4.0`;
+- `openai>=1.59,<2.0`;
+- `python-dotenv>=1.0,<2.0`;
+- `cryptography>=42.0,<45.0`.
+
+Fato: existe um ambiente virtual chamado `venv` na raiz do projeto.
+
+Fato: a regra local do projeto pede criar ambiente virtual com `python -m venv venv`, nunca com `.venv`.
+
+Fato: o projeto usa HTML, CSS e JavaScript puro no frontend.
+
+Fato: os testes usam `unittest`, sem dependência adicional de `pytest`.
+
+Inferência: a escolha de Flask e JavaScript puro reduz dependências, acelera instalação e diminui risco de incompatibilidade em máquina de professor, banca ou avaliador.
+
+Opinião técnica: para esse tipo de entrega, essa stack é superior a uma solução com framework frontend pesado, porque o custo de implementação e explicação ficaria maior sem ganho proporcional.
+
+## 4. Estrutura real do repositório
+
+Fato: a estrutura principal encontrada é:
+
+```text
+edu-chat/
+|-- .env
+|-- .env.exemple
+|-- .gitignore
+|-- app.py
+|-- codex.md
+|-- DOCUMENTACAO_PROJETO_IA.md
+|-- instrucoes.md
+|-- LICENSE
+|-- README.md
+|-- requirements.txt
+|-- ROTEIRO_APRESENTACAO.md
+|-- terminal_chat.py
+|-- Backup/
+|-- edu_chat/
+|   |-- __init__.py
+|   |-- ia.py
+|   |-- subjects.py
+|-- static/
+|   |-- css/
+|   |   |-- style.css
+|   |-- image/
+|   |   |-- einstein.png
+|   |   |-- livro.png
+|   |   |-- logo.png
+|   |   |-- matematica.png
+|   |   |-- microscopio.png
+|   |-- js/
+|       |-- app.js
+|-- templates/
+|   |-- index.html
+|-- tests/
+|   |-- test_app.py
+|   |-- test_config.py
+|   |-- test_ia.py
+|   |-- test_subjects.py
+|-- venv/
+```
+
+Fato: `edu_chat/config.py` e `edu_chat/service.py` não existem no estado atual do repositório.
+
+Fato: `README.md` e `DOCUMENTACAO_PROJETO_IA.md` foram atualizados em 22/05/2026 para não listar `config.py` e `service.py` como arquivos existentes.
+
+Inferência: houve uma refatoração anterior que removeu ou consolidou módulos, e a documentação foi realinhada para evitar ruído de manutenção.
+
+Opinião técnica: a consolidação em `ia.py` é aceitável para o tamanho atual. Se o projeto crescer para produção, separar configuração, cliente de IA e serviço de conversa pode melhorar testabilidade e manutenção.
+
+## 5. Arquivos versionados e ignorados
+
+Fato: `git status --short` estava limpo antes da criação deste arquivo.
+
+Fato: antes dos ajustes, `git status --short --ignored` indicava arquivos e pastas ignoradas:
+
+- `.env`;
+- `Backup/`;
+- `__pycache__/`;
+- `edu_chat/__pycache__/`;
+- `tests/__pycache__/`;
+- `venv/`.
+
+Fato: `ROTEIRO_APRESENTACAO.md` foi removido do `.gitignore` em 22/05/2026 para poder ser versionado, já que é citado na documentação pública do projeto.
+
+Fato: `.env` está ignorado, o que é correto porque pode conter segredo.
+
+Fato: `Backup/` está ignorado, o que é coerente com a regra local de manter cópias de segurança sem poluir o Git.
+
+Inferência: após a remoção da regra no `.gitignore`, o roteiro pode ser incluído no Git em um próximo commit, evitando que o README aponte para um arquivo ausente em outro ambiente.
+
+Opinião técnica: se o roteiro precisa ser entregue junto com o projeto, ele não deveria estar ignorado. Se for material privado, o README deveria deixar claro que ele é local ou remover a referência direta.
+
+## 6. Camada web, `app.py`
+
+Fato: `app.py` define a função `create_app()`, que funciona como factory da aplicação Flask.
+
+Fato: a aplicação configura `JSON_AS_ASCII` como `False`, preservando caracteres em português nas respostas JSON.
+
+Fato: dentro de `create_app()`, existe uma função interna `get_chatbot()` com `@lru_cache(maxsize=1)`.
+
+Fato: `get_chatbot()` cria e reutiliza uma instância de `TutorIA` por processo.
+
+Fato: as rotas expostas são:
+
+- `GET /`;
+- `GET /health`;
+- `POST /api/chat`.
+
+### 6.1 Rota `GET /`
+
+Fato: a rota principal renderiza `templates/index.html`.
+
+Fato: ela envia ao template:
+
+- lista de disciplinas;
+- disciplina padrão;
+- nome do modelo configurado;
+- erro de configuração, se existir.
+
+Fato: se `carregar_config()` falhar, a página ainda renderiza e exibe o erro na interface.
+
+Inferência: esse comportamento melhora a experiência de desenvolvimento, porque a tela abre mesmo quando o `.env` está incompleto.
+
+Opinião técnica: é uma boa decisão para reduzir suporte e facilitar demonstração, pois o avaliador vê uma mensagem clara em vez de receber uma página quebrada.
+
+### 6.2 Rota `GET /health`
+
+Fato: retorna `{"status": "ok"}` com HTTP 200.
+
+Inferência: serve para smoke test e verificação rápida de servidor ativo.
+
+Opinião técnica: para produção, essa rota poderia evoluir para checar configuração e conectividade, mas para o projeto atual está adequada.
+
+### 6.3 Rota `POST /api/chat`
+
+Fato: espera JSON com:
+
+- `message`;
+- `subject`;
+- `history`;
+- `quiz_mode`.
+
+Fato: valida mensagem vazia e retorna HTTP 400 com erro amigável.
+
+Fato: resolve a disciplina com `get_subject()`.
+
+Fato: delega a resposta para `TutorIA.responder()`.
+
+Fato: trata `ErroConfiguracao`, `ErroChat` e `ValueError` como HTTP 400.
+
+Fato: erros inesperados são logados com `app.logger.exception()` e retornam HTTP 500 com mensagem genérica.
+
+Inferência: há uma separação saudável entre camada HTTP e camada de IA, mesmo com arquitetura pequena.
+
+Opinião técnica: a rota está objetiva e testável. Para ambiente real, seria importante adicionar rate limiting, proteção contra payload muito grande e observabilidade mais rica.
+
+### 6.4 Bootstrap local
+
+Fato: quando `app.py` é executado diretamente, o servidor roda em `0.0.0.0`.
+
+Fato: a porta padrão é `5000`, alterável por `PORT`.
+
+Fato: `FLASK_DEBUG` ativa debug, com padrão ligado no código se a variável não existir.
+
+Fato: `FLASK_HTTPS=1` ativa `ssl_context='adhoc'`.
+
+Fato: HTTPS local depende da biblioteca `cryptography`.
+
+Inferência: o HTTPS local foi incluído para testar recursos de navegador ou demonstrar ambiente mais próximo de produção.
+
+Opinião técnica: para produção real, o Flask embutido não deve ser usado diretamente. O correto seria rodar atrás de servidor WSGI ou plataforma gerenciada.
+
+## 7. Interface de terminal, `terminal_chat.py`
+
+Fato: `terminal_chat.py` é o ponto de entrada em linha de comando.
+
+Fato: o arquivo define:
+
+- `EXIT_COMMANDS`;
+- `choose_subject()`;
+- `choose_quiz_mode()`;
+- `main()`.
+
+Fato: `choose_subject()` lista as disciplinas e obriga escolha numérica válida.
+
+Fato: `choose_quiz_mode()` aceita respostas afirmativas e negativas em português.
+
+Fato: `main()` cria `TutorIA`, coleta disciplina e modo quiz, mantém histórico local e encerra com `sair`, `exit` ou `quit`.
+
+Inferência: a interface terminal atende diretamente ao requisito mínimo da atividade acadêmica.
+
+Opinião técnica: manter terminal e web sobre o mesmo `TutorIA` reduz duplicação e evita que uma interface responda de forma diferente da outra.
+
+## 8. Núcleo de IA, `edu_chat/ia.py`
+
+Fato: `edu_chat/ia.py` concentra:
+
+- carregamento do `.env`;
+- validação de configuração;
+- criação do cliente Azure OpenAI;
+- montagem da chamada para Responses API;
+- tratamento de erros previsíveis;
+- limpeza de histórico.
+
+Fato: `load_dotenv()` é chamado no import do módulo.
+
+Fato: existem duas exceções customizadas:
+
+- `ErroConfiguracao`;
+- `ErroChat`.
+
+### 8.1 `carregar_config()`
+
+Fato: lê as seguintes variáveis:
+
+- `AZURE_OPENAI_API_KEY`;
+- `AZURE_ENDPOINT`;
+- `AZURE_DEPLOYMENT`;
+- `AZURE_API_VERSION`;
+- `OPENAI_MODEL`;
+- `CHATBOT_TEMPERATURE`;
+- `CHATBOT_MAX_TOKENS`;
+- `CHATBOT_REASONING_EFFORT`.
+
+Fato: todas essas variáveis são obrigatórias.
+
+Fato: `AZURE_ENDPOINT` recebe `rstrip('/')`, removendo barra final.
+
+Fato: o endpoint precisa começar com `http://` ou `https://`.
+
+Fato: `CHATBOT_TEMPERATURE` precisa ser conversível para `float`.
+
+Fato: `CHATBOT_MAX_TOKENS` precisa ser conversível para `int`.
+
+Fato: o retorno de `carregar_config()` inclui `temperature`, mas esse valor não é usado na chamada atual ao modelo.
+
+Inferência: a temperatura ficou na configuração por histórico de versões anteriores, mas foi removida dos parâmetros de chamada para compatibilidade com deployments reasoning.
+
+Opinião técnica: manter `temperature` obrigatório mas não usado pode confundir manutenção. Há duas opções limpas: remover da configuração obrigatória ou documentar claramente que está reservado para deployments compatíveis no futuro.
+
+### 8.2 Classe `TutorIA`
+
+Fato: `TutorIA.__init__()` aceita uma configuração opcional, o que facilita testes.
+
+Fato: se a configuração não for passada, chama `carregar_config()`.
+
+Fato: cria `AzureOpenAI` com:
+
+- `api_key`;
+- `api_version`;
+- `azure_endpoint`;
+- `azure_deployment`;
+- `timeout=45.0`.
+
+Fato: `TutorIA.responder()` recebe:
+
+- histórico;
+- mensagem do usuário;
+- chave da disciplina;
+- modo quiz.
+
+Fato: mensagens vazias geram `ErroChat`.
+
+Fato: o system prompt é criado por `build_system_prompt()`.
+
+Fato: o histórico é limpo e limitado antes de ser enviado.
+
+Fato: a chamada principal usa `client.responses.create()`.
+
+Fato: o modelo enviado é `self.config["azure_deployment"]`.
+
+Fato: o parâmetro usado para limite é `max_output_tokens`.
+
+Fato: `reasoning_effort` só é enviado quando existe e é diferente de `none`.
+
+Fato: se a SDK rejeitar `reasoning_effort` com `TypeError`, o código remove esse parâmetro e tenta novamente.
+
+Fato: `AuthenticationError` é convertido em `ErroChat` com mensagem mais clara.
+
+Fato: se `resp.output_text` vier vazio, o código levanta `ErroChat`.
+
+Inferência: a chamada foi adaptada para modelos/deployments que não aceitam os parâmetros tradicionais `max_tokens` e `temperature`.
+
+Opinião técnica: o fallback para `reasoning_effort` é pragmático e melhora compatibilidade. O ponto de atenção é que ele só cobre `TypeError`, não erros HTTP específicos de parâmetro inválido.
+
+### 8.3 `_limpar_historico()`
+
+Fato: aceita iterável de dicionários.
+
+Fato: ignora itens que não são dicionários.
+
+Fato: aceita apenas roles `user` e `assistant`.
+
+Fato: remove conteúdo vazio.
+
+Fato: retorna apenas os 10 últimos itens válidos.
+
+Inferência: o objetivo é reduzir custo e latência da API sem perder contexto recente.
+
+Opinião técnica: limitar histórico é uma boa escolha para custo e performance. Para produção, o limite deveria considerar tokens, não apenas quantidade de mensagens.
+
+## 9. Disciplinas e prompts, `edu_chat/subjects.py`
+
+Fato: o módulo usa `dataclass(frozen=True)` para definir `Subject`.
+
+Fato: `SUBJECTS` é um dicionário com quatro disciplinas.
+
+Fato: `DEFAULT_SUBJECT` é `matematica`.
+
+Fato: `get_subject()` retorna a disciplina ou levanta `ValueError` para chave inválida.
+
+Fato: `list_subjects()` serializa os dataclasses com `asdict()`.
+
+Fato: `build_system_prompt()` monta o prompt base e, opcionalmente, adiciona instruções de quiz.
+
+Fato: o prompt base é um f-string e interpola corretamente `disciplina.label` e `disciplina.focus_topics`.
+
+Fato: o bloco `prompt_quiz` foi corrigido para f-string em 22/05/2026.
+
+Fato: o teste `test_quiz_prompt_adds_specific_instruction` passou a verificar que `{disciplina.label}` não aparece literalmente no prompt final.
+
+Inferência: a correção melhora a instrução recebida pelo modelo no modo quiz sem alterar a arquitetura.
+
+Opinião técnica: esse era o ajuste de maior retorno imediato, porque tinha baixo custo e impacto direto na qualidade pedagógica.
+
+## 10. Frontend HTML, `templates/index.html`
+
+Fato: o template é uma página única.
+
+Fato: recebe dados do Flask por Jinja.
+
+Fato: renderiza:
+
+- sidebar;
+- marca EduChat;
+- lista de disciplinas;
+- contexto atual;
+- toggle de modo quiz;
+- botão de limpar conversa;
+- status;
+- área hero;
+- sugestões;
+- aviso de configuração;
+- área de chat;
+- formulário de mensagem.
+
+Fato: os dados iniciais são expostos em `window.APP_CONFIG`.
+
+Fato: os assets estáticos são carregados via `url_for('static', filename=...)`.
+
+Inferência: a interface foi pensada para evitar hardcode duplicado no JS, já que as disciplinas vêm do backend.
+
+Opinião técnica: essa abordagem reduz manutenção. Ao adicionar uma disciplina em `subjects.py`, a interface tende a se adaptar automaticamente.
+
+## 11. Frontend JavaScript, `static/js/app.js`
+
+Fato: o JS mantém estado local em um objeto `state`.
+
+Fato: o estado inclui:
+
+- disciplina ativa;
+- histórico;
+- modo quiz;
+- carregamento.
+
+Fato: o arquivo cria um mapa de disciplinas a partir de `window.APP_CONFIG.subjects`.
+
+Fato: funções principais:
+
+- `isImageIcon()`;
+- `setIconContent()`;
+- `escapeHtml()`;
+- `renderInlineMarkdown()`;
+- `isListItem()`;
+- `renderMarkdown()`;
+- `getActiveSubject()`;
+- `showNotice()`;
+- `setComposerDisabled()`;
+- `updateSubjectState()`;
+- `renderSuggestionChips()`;
+- `createMessageElement()`;
+- `renderMessages()`;
+- `resetConversation()`;
+- `setLoading()`;
+- `sendMessage()`;
+- `bindEvents()`;
+- `initialize()`.
+
+Fato: o renderer de Markdown escapa HTML antes de converter marcações simples.
+
+Fato: o renderer cobre:
+
+- títulos Markdown;
+- parágrafos;
+- listas ordenadas;
+- listas não ordenadas;
+- negrito;
+- itálico;
+- código inline.
+
+Fato: ao trocar disciplina, o histórico é limpo.
+
+Fato: ao alternar modo quiz, o histórico também é limpo.
+
+Fato: durante carregamento, input, botão de limpar, toggle e botões de disciplina são desabilitados.
+
+Fato: a mensagem do usuário é inserida de forma otimista no histórico antes da resposta do backend.
+
+Fato: em erro, o frontend adiciona uma mensagem de falha na conversa e mostra aviso.
+
+Inferência: o frontend foi desenhado para consistência de estado acima de complexidade. Ele redesenha mensagens a partir do estado em vez de tentar manipular pequenos deltas em muitos lugares.
+
+Opinião técnica: para uma aplicação pequena, isso é ótimo. Reduz bugs visuais e torna o comportamento previsível.
+
+## 12. Estilos, `static/css/style.css`
+
+Fato: a interface usa tema escuro, com tons de azul/ciano.
+
+Fato: há variáveis CSS em `:root` para cores, raios, sombras e fontes.
+
+Fato: a tela principal usa grid com sidebar fixa em desktop.
+
+Fato: em telas menores, a interface vira layout de uma coluna.
+
+Fato: a sidebar tem rolagem própria.
+
+Fato: os cards principais usam `backdrop-filter` e sombras.
+
+Fato: há estilos específicos para:
+
+- botões de disciplina;
+- toggle de quiz;
+- chips de sugestão;
+- bolhas de mensagem;
+- estado vazio;
+- indicador de digitação;
+- compositor de mensagens;
+- responsividade.
+
+Inferência: a estética prioriza impacto visual para apresentação acadêmica, não densidade operacional de uma ferramenta corporativa.
+
+Opinião técnica: visualmente é forte para demo. Para produção educacional de uso diário, poderia ser simplificado para melhorar acessibilidade, contraste auditável e conforto em sessões longas.
+
+## 13. Assets visuais
+
+Fato: os assets ficam em `static/image/`.
+
+Fato: arquivos encontrados:
+
+- `einstein.png`;
+- `livro.png`;
+- `logo.png`;
+- `matematica.png`;
+- `microscopio.png`.
+
+Fato: `logo.png` e `matematica.png` são relativamente grandes em tamanho de arquivo, acima de 1 MB cada.
+
+Inferência: esses arquivos podem impactar carregamento inicial, especialmente em conexão lenta.
+
+Opinião técnica: comprimir esses PNGs ou gerar versões WebP reduziria tempo de carregamento e consumo de banda, sem mexer na lógica.
+
+## 14. Testes automatizados
+
+Fato: os testes estão em `tests/`.
+
+Fato: foi executado:
+
+```powershell
+.\venv\Scripts\python -m unittest discover -s tests -v
+```
+
+Fato: resultado da execução:
+
+- 11 testes executados;
+- 11 testes passaram;
+- 0 falhas;
+- 0 erros.
+
+Fato: `tests/test_app.py` cobre:
+
+- rota `/health`;
+- carregamento da homepage com disciplina padrão.
+
+Fato: `tests/test_config.py` cobre:
+
+- endpoint inválido;
+- variáveis obrigatórias ausentes;
+- carregamento completo de configuração válida.
+
+Fato: `tests/test_ia.py` cobre:
+
+- retry sem `reasoning_effort` quando esse parâmetro não é suportado;
+- transformação de erro de autenticação em mensagem compreensível.
+
+Fato: `tests/test_subjects.py` cobre:
+
+- existência da disciplina padrão;
+- presença de instruções de quiz;
+- presença de estilo pedagógico no prompt regular;
+- existência de perguntas iniciais para quiz.
+
+Inferência: os testes cobrem bem o núcleo lógico pequeno, mas não cobrem navegador, CSS, eventos reais do frontend nem chamada real ao Azure.
+
+Opinião técnica: o teste específico para garantir que o prompt de quiz não contém `{disciplina.label}` literal foi adicionado, fechando o principal risco de regressão identificado nessa área.
+
+## 15. Configuração e `.env`
+
+Fato: existe um arquivo `.env` local, mas ele está ignorado pelo Git.
+
+Fato: por segurança, o conteúdo do `.env` real não foi inspecionado nesta análise.
+
+Fato: existe `.env.exemple`, mas o nome usa `exemple`, não `example`.
+
+Fato: antes do ajuste de 22/05/2026, `.env.exemple` mostrava um exemplo de `AZURE_ENDPOINT` com rota completa `/openai/responses?api-version=...`.
+
+Fato: agora `.env.exemple` usa `AZURE_ENDPOINT=https://seu-recurso.cognitiveservices.azure.com`, alinhado com `README.md`, `DOCUMENTACAO_PROJETO_IA.md` e `carregar_config()`.
+
+Inferência: isso reduz chance de erro 404 em nova configuração local.
+
+Opinião técnica: manter o exemplo correto é uma melhoria pequena, mas com impacto alto em onboarding e redução de suporte.
+
+## 16. Documentação
+
+Fato: `README.md` explica:
+
+- objetivo do projeto;
+- tecnologias;
+- recursos visuais;
+- estrutura;
+- variáveis de ambiente;
+- execução web;
+- execução HTTPS local;
+- execução terminal;
+- testes;
+- decisões de design;
+- problemas resolvidos.
+
+Fato: `DOCUMENTACAO_PROJETO_IA.md` é uma documentação acadêmica extensa, com fundamentação, arquitetura, módulos, integração, interface, testes, limitações e melhorias futuras.
+
+Fato: `instrucoes.md` descreve a tarefa acadêmica original.
+
+Fato: `ROTEIRO_APRESENTACAO.md` existe localmente e não está mais ignorado pelo Git.
+
+Inferência: a documentação está em um nível acima do comum para um exercício acadêmico, o que melhora avaliação e manutenção.
+
+Opinião técnica: a árvore de arquivos e a referência ao roteiro foram alinhadas com o estado real do Git. O próximo cuidado é garantir que o roteiro seja adicionado ao Git quando a entrega for preparada.
+
+## 17. Fluxo principal de uso web
+
+Fato: o usuário acessa `/`.
+
+Fato: Flask renderiza as disciplinas e configurações iniciais.
+
+Fato: o JS inicializa `state.subject` com a disciplina padrão.
+
+Fato: a interface mostra título, descrição e sugestões da disciplina.
+
+Fato: o usuário digita uma pergunta ou clica em sugestão.
+
+Fato: `sendMessage()` envia `POST /api/chat`.
+
+Fato: o backend valida, resolve disciplina e chama `TutorIA.responder()`.
+
+Fato: `TutorIA` monta mensagens para a Responses API:
+
+- system prompt;
+- histórico limpo;
+- mensagem atual do usuário.
+
+Fato: Azure OpenAI retorna `output_text`.
+
+Fato: Flask devolve `{"answer": resposta, "subject": disciplina.label}`.
+
+Fato: o frontend adiciona a resposta no histórico e renderiza Markdown seguro.
+
+Inferência: o ciclo foi desenhado para conversas curtas, não para sessões longas com memória persistente.
+
+Opinião técnica: para aumentar valor pedagógico real, persistência por sessão e acompanhamento de progresso seriam as melhorias de maior impacto.
+
+## 18. Fluxo principal de uso terminal
+
+Fato: o usuário roda `python terminal_chat.py`.
+
+Fato: o programa inicializa `TutorIA`.
+
+Fato: se a configuração estiver inválida, exibe erro e encerra.
+
+Fato: o usuário escolhe disciplina.
+
+Fato: o usuário escolhe se quer modo quiz.
+
+Fato: o loop recebe perguntas até comando de saída.
+
+Fato: o histórico local é atualizado após cada resposta.
+
+Inferência: o terminal funciona como versão mínima e robusta para atender aos critérios da atividade.
+
+Opinião técnica: a versão terminal é importante porque reduz risco de apresentação, se a interface web falhar por navegador, porta ou HTTPS.
+
+## 19. Principais decisões arquiteturais
+
+Fato: o projeto usa uma factory `create_app()`.
+
+Fato: o núcleo de IA é reaproveitado por web e terminal.
+
+Fato: disciplinas e prompts ficam centralizados em `subjects.py`.
+
+Fato: histórico é limitado aos últimos 10 itens válidos.
+
+Fato: troca de disciplina limpa conversa.
+
+Fato: troca de modo quiz limpa conversa.
+
+Fato: configuração obrigatória falha cedo.
+
+Fato: frontend escapa HTML antes de renderizar Markdown básico.
+
+Inferência: as decisões buscam reduzir inconsistência de contexto, custo de API e risco de respostas fora da matéria.
+
+Opinião técnica: a melhor decisão é centralizar as disciplinas em `subjects.py`, porque isso mantém prompt, interface e sugestões sincronizados em um único lugar.
+
+## 20. Riscos e pontos de atenção
+
+### 20.1 Prompt de quiz com placeholder literal, resolvido
+
+Fato: `prompt_quiz` agora é f-string.
+
+Fato: existe teste garantindo que `{disciplina.label}` não aparece literalmente no prompt final.
+
+Impacto real: a instrução enviada ao modelo ficou mais precisa no modo quiz.
+
+Prioridade sugerida: resolvido.
+
+### 20.2 `.env.exemple` inconsistente, resolvido
+
+Fato: o exemplo de endpoint em `.env.exemple` agora usa URL base do recurso.
+
+Fato: o código espera endpoint base.
+
+Impacto real: reduz chance de erro 404 e fricção para rodar o projeto.
+
+Prioridade sugerida: resolvido.
+
+### 20.3 Documentação com árvore parcialmente defasada, resolvido
+
+Fato: README e documentação foram atualizados para não citar `config.py` e `service.py` como arquivos existentes na árvore.
+
+Impacto real: reduz confusão em avaliação, manutenção e onboarding.
+
+Prioridade sugerida: resolvido.
+
+### 20.4 Roteiro citado mas ignorado pelo Git, resolvido parcialmente
+
+Fato: `ROTEIRO_APRESENTACAO.md` foi removido do `.gitignore`.
+
+Impacto real: o arquivo agora pode ser versionado em um próximo commit.
+
+Prioridade sugerida: baixa, restando apenas adicionar o arquivo ao Git quando for desejado.
+
+### 20.5 Temperatura obrigatória mas não usada
+
+Fato: `CHATBOT_TEMPERATURE` é obrigatória e parseada, mas não enviada ao modelo.
+
+Impacto real: confusão de configuração, manutenção e expectativas de comportamento do modelo.
+
+Prioridade sugerida: média.
+
+### 20.6 Ausência de testes end-to-end
+
+Fato: não há testes de navegador.
+
+Impacto real: mudanças no HTML, CSS ou JS podem quebrar fluxo real sem serem detectadas pelos testes atuais.
+
+Prioridade sugerida: média.
+
+### 20.7 Assets grandes
+
+Fato: alguns PNGs têm mais de 1 MB.
+
+Impacto real: piora tempo de carregamento e consumo de rede.
+
+Prioridade sugerida: baixa a média.
+
+## 21. Melhorias recomendadas por retorno
+
+### Melhor opção imediata restante
+
+Opinião técnica: validar uma chamada real ao Azure OpenAI pela interface web e pelo terminal.
+
+Motivo:
+
+- os testes locais garantem a lógica interna, mas não confirmam credenciais, endpoint, deployment ou disponibilidade do serviço externo;
+- uma validação real reduz risco de falha durante apresentação;
+- o custo de verificação é baixo, desde que o `.env` esteja correto.
+
+Trade-offs:
+
+- complexidade: baixa;
+- custo: baixo a moderado, dependendo do uso da API;
+- escalabilidade: neutra;
+- manutenção: positiva, porque confirma que configuração e integração estão coerentes;
+- performance: neutra.
+
+### Segunda melhoria
+
+Opinião técnica: comprimir assets grandes, principalmente `logo.png` e `matematica.png`.
+
+Motivo:
+
+- melhora carregamento inicial;
+- reduz uso de banda;
+- deixa a interface mais responsiva em máquinas simples ou internet lenta.
+
+Trade-offs:
+
+- complexidade: baixa;
+- custo: baixo;
+- escalabilidade: neutra;
+- manutenção: neutra;
+- performance: positiva.
+
+### Terceira melhoria
+
+Opinião técnica: adicionar teste end-to-end de navegador para o fluxo principal.
+
+Motivo:
+
+- os testes atuais não executam eventos reais do frontend;
+- mudanças em HTML, CSS ou JavaScript podem quebrar o envio de mensagem sem aparecer no `unittest`;
+- um teste de navegador aumenta confiança para apresentação e evolução.
+
+Trade-offs:
+
+- complexidade: média;
+- custo: médio, porque exige ferramenta adicional;
+- escalabilidade: positiva para evolução do frontend;
+- manutenção: exige cuidado com seletores estáveis;
+- performance: deixa a suíte mais lenta.
+
+### Quarta melhoria
+
+Opinião técnica: decidir se vale criar também um `.env.example` ao lado de `.env.exemple`.
+
+Motivo:
+
+- `.env.example` é o nome mais comum em projetos Python e web;
+- manter `.env.exemple` preserva compatibilidade com a documentação atual;
+- criar os dois pode facilitar onboarding sem quebrar referência existente.
+
+Trade-offs:
+
+- complexidade: baixa;
+- custo: baixo;
+- manutenção: levemente maior se os dois arquivos forem mantidos;
+- risco: divergência entre exemplos se um for atualizado e outro não.
+
+## 22. Possível evolução para produção
+
+Inferência: se o projeto fosse colocado em uso real por escola, curso ou plataforma de estudos, precisaria evoluir em várias frentes.
+
+Recomendações:
+
+- autenticação de usuários;
+- persistência de histórico;
+- banco de dados;
+- perfil de estudante;
+- nível de dificuldade;
+- acompanhamento de desempenho;
+- relatórios por disciplina;
+- logs estruturados;
+- métricas de uso;
+- limites de requisição por usuário;
+- moderação e filtros de segurança;
+- testes end-to-end;
+- deploy com WSGI ou plataforma gerenciada;
+- gestão segura de secrets;
+- revisão de acessibilidade;
+- observabilidade de custo por chamada ao modelo.
+
+Impacto de negócio e operação:
+
+- persistência aumenta retenção, porque o aluno continua de onde parou;
+- analytics permite medir disciplinas com mais dúvida e orientar conteúdo;
+- rate limiting reduz custo e mitiga abuso;
+- logs e monitoramento reduzem tempo de diagnóstico;
+- testes e deploy adequado reduzem risco de falha em apresentação ou uso real.
+
+## 23. Como executar
+
+Fato: o ambiente virtual já existe como `venv`.
+
+Comandos esperados em PowerShell:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python app.py
+```
+
+Fato: a interface web roda por padrão em:
+
+```text
+http://localhost:5000
+```
+
+Fato: a versão terminal roda com:
+
+```powershell
+python terminal_chat.py
+```
+
+Fato: os testes rodam com:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+## 24. Validação realizada nesta análise
+
+Fato: foram inspecionados:
+
+- estrutura do repositório;
+- arquivos Python principais;
+- frontend HTML, CSS e JS;
+- documentação;
+- `.gitignore`;
+- arquivos versionados;
+- status do Git;
+- testes automatizados.
+
+Fato: os testes automatizados passaram no `venv`.
+
+Fato: o `.env` real não foi aberto para evitar exposição de segredo.
+
+Fato: nenhum teste de chamada real ao Azure OpenAI foi executado.
+
+Inferência: o projeto está funcional do ponto de vista de testes locais e estrutura, mas a integração real depende de `.env` válido e disponibilidade do Azure OpenAI.
+
+Opinião técnica: antes de uma apresentação, vale rodar uma pergunta real no navegador e outra no terminal para validar credenciais, endpoint, deployment e comportamento do modelo.
+
+## 25. Resumo executivo
+
+Fato: o EduChat é um projeto funcional, com arquitetura simples, interface web, interface terminal, modo quiz, documentação robusta e testes automatizados.
+
+Inferência: a base atual é suficiente para uma entrega acadêmica forte e demonstrável.
+
+Opinião técnica: os ajustes mais importantes de consistência foram aplicados. O próximo avanço de maior retorno seria validar uma chamada real ao Azure OpenAI e, depois, evoluir funcionalidades como persistência de histórico ou base documental.
