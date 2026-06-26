@@ -49,7 +49,15 @@ Fato: as disciplinas suportadas são:
 - Matemática;
 - Biologia;
 - História;
-- Física.
+- Física;
+- Química;
+- Geografia;
+- Língua Portuguesa;
+- Inglês;
+- Filosofia;
+- Sociologia;
+- Artes;
+- Educação Física.
 
 Fato: cada disciplina possui:
 
@@ -115,11 +123,11 @@ edu-chat/
 |   |-- css/
 |   |   |-- style.css
 |   |-- image/
-|   |   |-- einstein.png
-|   |   |-- livro.png
+|   |   |-- biologia.png
+|   |   |-- fisica.png
+|   |   |-- historia.png
 |   |   |-- logo.png
 |   |   |-- matematica.png
-|   |   |-- microscopio.png
 |   |-- js/
 |       |-- app.js
 |-- templates/
@@ -376,7 +384,9 @@ Opinião técnica: limitar histórico é uma boa escolha para custo e performanc
 
 Fato: o módulo usa `dataclass(frozen=True)` para definir `Subject`.
 
-Fato: `SUBJECTS` é um dicionário com quatro disciplinas.
+Fato: `SUBJECTS` é um dicionário com 12 disciplinas.
+
+Fato: as disciplinas novas usam abreviações textuais no campo `icon` enquanto não existirem imagens próprias em `static/image/`.
 
 Fato: `DEFAULT_SUBJECT` é `matematica`.
 
@@ -520,11 +530,11 @@ Fato: os assets ficam em `static/image/`.
 
 Fato: arquivos encontrados:
 
-- `einstein.png`;
-- `livro.png`;
+- `biologia.png`;
+- `fisica.png`;
+- `historia.png`;
 - `logo.png`;
-- `matematica.png`;
-- `microscopio.png`.
+- `matematica.png`.
 
 Fato: `logo.png` e `matematica.png` são relativamente grandes em tamanho de arquivo, acima de 1 MB cada.
 
@@ -568,6 +578,7 @@ Fato: `tests/test_ia.py` cobre:
 Fato: `tests/test_subjects.py` cobre:
 
 - existência da disciplina padrão;
+- cadastro das principais disciplinas curriculares do ensino médio;
 - presença de instruções de quiz;
 - presença de estilo pedagógico no prompt regular;
 - existência de perguntas iniciais para quiz.

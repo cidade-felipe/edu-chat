@@ -9,7 +9,7 @@ O projeto oferece duas interfaces sobre a mesma base de lógica:
 
 ## O que foi implementado
 
-- 4 disciplinas do ensino médio: Matemática, Biologia, História e Física.
+- 12 disciplinas do ensino médio: Matemática, Biologia, História, Física, Química, Geografia, Língua Portuguesa, Inglês, Filosofia, Sociologia, Artes e Educação Física.
 - Respostas curtas e didáticas, com prompts específicos por disciplina.
 - Modo quiz opcional, onde o chatbot faz uma pergunta por vez e corrige a resposta.
 - Integração com Azure OpenAI usando variáveis do arquivo `.env`.
@@ -36,11 +36,13 @@ Os assets da interface ficam em `static/image/`:
 
 - `logo.png`
 - `matematica.png`
-- `microscopio.png`
-- `livro.png`
-- `einstein.png`
+- `biologia.png`
+- `historia.png`
+- `fisica.png`
 
 Importante: no Flask, imagens, CSS e JavaScript devem ficar dentro de `static/` para serem servidos corretamente.
+
+As disciplinas novas usam abreviações textuais como ícone enquanto não houver imagens próprias. Para trocar por imagem, adicione o arquivo em `static/image/` e atualize o campo `icon` em `edu_chat/subjects.py` para algo como `image/quimica.png`.
 
 ## Estrutura do projeto
 
@@ -63,9 +65,9 @@ edu-chat/
 |   |-- image/
 |   |   |-- logo.png
 |   |   |-- matematica.png
-|   |   |-- microscopio.png
-|   |   |-- livro.png
-|   |   |-- einstein.png
+|   |   |-- biologia.png
+|   |   |-- historia.png
+|   |   |-- fisica.png
 |   |-- js/
 |       |-- app.js
 |-- templates/
@@ -188,7 +190,7 @@ python -m unittest discover -s tests -v
 ### Verificações manuais sugeridas
 
 - Trocar de disciplina e confirmar que o contexto atual muda.
-- Confirmar se os ícones visuais das quatro disciplinas estão aparecendo corretamente.
+- Confirmar se as imagens das disciplinas antigas e as abreviações das disciplinas novas aparecem corretamente.
 - Confirmar se respostas com `**negrito**`, `## títulos` e listas aparecem formatadas, e não como texto cru.
 - Ativar o modo quiz e validar se a IA passa a fazer uma pergunta por vez.
 - Confirmar se, ao ativar o modo quiz, os atalhos passam a sugerir teste, quiz ou resposta guiada, em vez de pedidos como `explique`.

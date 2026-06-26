@@ -42,7 +42,7 @@ SUBJECTS: dict[str, Subject] = {
     'biologia': Subject(
         key='biologia',
         label='Biologia',
-        icon='image/microscopio.png',
+        icon='image/biologia.png',
         short_description='Corpo humano, genética, ecologia e citologia com linguagem clara.',
         focus_topics='citologia, genética, ecologia, fisiologia e evolução',
         hero_title='Conecte teoria com o que acontece na vida real',
@@ -64,7 +64,7 @@ SUBJECTS: dict[str, Subject] = {
     'historia': Subject(
         key='historia',
         label='História',
-        icon='image/livro.png',
+        icon='image/historia.png',
         short_description='Brasil e mundo, revoluções e processos históricos sem decoreba.',
         focus_topics='história do Brasil, história geral, revoluções e movimentos sociais',
         hero_title='Entenda causas, contexto e consequências',
@@ -86,7 +86,7 @@ SUBJECTS: dict[str, Subject] = {
     'fisica': Subject(
         key='fisica',
         label='Física',
-        icon='image/einstein.png',
+        icon='image/fisica.png',
         short_description='Movimento, forças, energia e eletricidade com exemplos práticos.',
         focus_topics='cinemática, dinâmica, energia, ondas e eletricidade',
         hero_title='Transforme fórmulas em fenômenos que fazem sentido',
@@ -103,6 +103,182 @@ SUBJECTS: dict[str, Subject] = {
             'Um quiz sobre velocidade média.',
             'Teste sobre a segunda lei de Newton.',
             'Perguntas sobre conservação de energia.',
+        ),
+    ),
+    'quimica': Subject(
+        key='quimica',
+        label='Química',
+        icon='image/quimica.png',
+        short_description='Matéria, reações, ligações e cálculos químicos com exemplos do dia a dia.',
+        focus_topics='estrutura da matéria, ligações químicas, reações, estequiometria e química orgânica',
+        hero_title='Entenda transformações químicas sem decorar fórmulas soltas',
+        hero_description=(
+            'Revise conceitos, interprete reações e relacione a química com alimentos, '
+            'produtos, energia, ambiente e situações cotidianas.'
+        ),
+        starter_questions=(
+            'Qual a diferença entre átomo e molécula?',
+            'Explique ligações químicas de forma simples.',
+            'Como balancear uma equação química?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre ligações químicas.',
+            'Teste sobre balanceamento de equações.',
+            'Perguntas sobre átomos, moléculas e íons.',
+        ),
+    ),
+    'geografia': Subject(
+        key='geografia',
+        label='Geografia',
+        icon='image/geografia.png',
+        short_description='Espaço geográfico, clima, mapas, população e economia com leitura crítica.',
+        focus_topics='cartografia, geografia física, geopolítica, urbanização, população e economia',
+        hero_title='Leia o mundo por mapas, paisagens e relações sociais',
+        hero_description=(
+            'Use o chatbot para entender fenômenos naturais e humanos, conectando '
+            'território, sociedade, economia e atualidades.'
+        ),
+        starter_questions=(
+            'O que é espaço geográfico?',
+            'Explique globalização com exemplos.',
+            'Qual a diferença entre clima e tempo?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre globalização.',
+            'Teste sobre clima e tempo.',
+            'Perguntas sobre cartografia básica.',
+        ),
+    ),
+    'portugues': Subject(
+        key='portugues',
+        label='Língua Portuguesa',
+        icon='image/portugues.png',
+        short_description='Gramática, interpretação, literatura e produção textual com clareza.',
+        focus_topics='interpretação de texto, gramática, literatura, gêneros textuais e redação',
+        hero_title='Transforme leitura e escrita em ferramentas mais seguras',
+        hero_description=(
+            'Pratique interpretação, revise regras gramaticais e melhore a escrita com '
+            'explicações objetivas e exemplos aplicáveis.'
+        ),
+        starter_questions=(
+            'Como identificar a ideia principal de um texto?',
+            'Qual a diferença entre sujeito e predicado?',
+            'O que foi o modernismo brasileiro?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre sujeito e predicado.',
+            'Teste sobre interpretação de texto.',
+            'Perguntas sobre modernismo brasileiro.',
+        ),
+    ),
+    'ingles': Subject(
+        key='ingles',
+        label='Inglês',
+        icon='image/ingles.png',
+        short_description='Vocabulário, leitura, tempos verbais e interpretação em inglês.',
+        focus_topics='leitura em inglês, vocabulário, tempos verbais, gramática básica e interpretação',
+        hero_title='Ganhe confiança para ler e entender inglês',
+        hero_description=(
+            'Treine estruturas essenciais, vocabulário e leitura de textos curtos com '
+            'explicações em português do Brasil.'
+        ),
+        starter_questions=(
+            'Qual a diferença entre simple present e present continuous?',
+            'Como usar did e does?',
+            'Me ajude a interpretar uma frase em inglês.',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre simple present.',
+            'Teste sobre did e does.',
+            'Perguntas de vocabulário básico em inglês.',
+        ),
+    ),
+    'filosofia': Subject(
+        key='filosofia',
+        label='Filosofia',
+        icon='image/filosofia.png',
+        short_description='Ideias, ética, conhecimento e pensamento crítico sem complicar.',
+        focus_topics='ética, política, teoria do conhecimento, filosofia antiga e filosofia moderna',
+        hero_title='Aprenda a pensar perguntas difíceis com mais clareza',
+        hero_description=(
+            'Revise autores, conceitos e problemas filosóficos com linguagem simples, '
+            'sempre conectando ideias abstratas a exemplos concretos.'
+        ),
+        starter_questions=(
+            'O que é ética na filosofia?',
+            'Explique o mito da caverna de Platão.',
+            'Qual a diferença entre senso comum e conhecimento filosófico?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre ética.',
+            'Teste sobre o mito da caverna.',
+            'Perguntas sobre senso comum e filosofia.',
+        ),
+    ),
+    'sociologia': Subject(
+        key='sociologia',
+        label='Sociologia',
+        icon='image/sociologia.png',
+        short_description='Sociedade, cultura, trabalho, desigualdade e cidadania com exemplos reais.',
+        focus_topics='cultura, socialização, desigualdade, trabalho, cidadania e movimentos sociais',
+        hero_title='Observe a sociedade com lentes mais críticas',
+        hero_description=(
+            'Entenda conceitos sociológicos e relacione teoria com escola, mídia, '
+            'trabalho, política, cultura e desigualdades.'
+        ),
+        starter_questions=(
+            'O que é fato social?',
+            'Explique cultura e etnocentrismo.',
+            'Qual a diferença entre socialização primária e secundária?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre fato social.',
+            'Teste sobre cultura e etnocentrismo.',
+            'Perguntas sobre socialização.',
+        ),
+    ),
+    'artes': Subject(
+        key='artes',
+        label='Artes',
+        icon='image/artes.png',
+        short_description='Linguagens artísticas, movimentos, leitura de obras e cultura visual.',
+        focus_topics='artes visuais, música, teatro, dança, história da arte e leitura de imagens',
+        hero_title='Leia obras, estilos e linguagens com mais intenção',
+        hero_description=(
+            'Explore movimentos artísticos, elementos visuais e relações entre arte, '
+            'cultura, história e expressão.'
+        ),
+        starter_questions=(
+            'O que foi o impressionismo?',
+            'Como analisar uma obra de arte?',
+            'Qual a diferença entre arte figurativa e abstrata?',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre impressionismo.',
+            'Teste sobre análise de obra de arte.',
+            'Perguntas sobre arte figurativa e abstrata.',
+        ),
+    ),
+    'educacao_fisica': Subject(
+        key='educacao_fisica',
+        label='Educação Física',
+        icon='image/educacao_fisica.png',
+        short_description='Corpo, saúde, esportes, práticas corporais e qualidade de vida.',
+        focus_topics='esportes, saúde, capacidades físicas, práticas corporais e qualidade de vida',
+        hero_title='Entenda movimento, saúde e esporte além da prática',
+        hero_description=(
+            'Revise conceitos sobre corpo, treinamento, esportes e hábitos saudáveis '
+            'com explicações simples e aplicáveis.'
+        ),
+        starter_questions=(
+            'O que são capacidades físicas?',
+            'Qual a diferença entre atividade física e exercício físico?',
+            'Explique frequência cardíaca.',
+        ),
+        quiz_starter_questions=(
+            'Um quiz sobre capacidades físicas.',
+            'Teste sobre atividade física e exercício físico.',
+            'Perguntas sobre frequência cardíaca.',
         ),
     ),
 }

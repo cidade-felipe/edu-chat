@@ -12,6 +12,30 @@ class SubjectsTestCase(unittest.TestCase):
         """
         self.assertIn(DEFAULT_SUBJECT, SUBJECTS)
 
+    def test_high_school_subjects_are_registered(self) -> None:
+        """Confirma que as principais disciplinas curriculares estão cadastradas.
+
+        A interface web e o terminal dependem do dicionário central de
+        disciplinas. Este teste evita remover sem querer uma matéria importante
+        do ensino médio ao editar `subjects.py`.
+        """
+        expected_subjects = {
+            "matematica",
+            "biologia",
+            "historia",
+            "fisica",
+            "quimica",
+            "geografia",
+            "portugues",
+            "ingles",
+            "filosofia",
+            "sociologia",
+            "artes",
+            "educacao_fisica",
+        }
+
+        self.assertTrue(expected_subjects.issubset(SUBJECTS))
+
     def test_quiz_prompt_adds_specific_instruction(self) -> None:
         """Verifica se o prompt de quiz inclui instruções extras de avaliação.
 
