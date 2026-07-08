@@ -173,7 +173,7 @@ SUBJECTS: dict[str, Subject] = {
     ),
     'ingles': Subject(
         key='ingles',
-        label='Inglês',
+        label='Língua Inglesa',
         icon='image/ingles.png',
         short_description='Vocabulário, leitura, tempos verbais e interpretação em inglês.',
         focus_topics='leitura em inglês, vocabulário, tempos verbais, gramática básica e interpretação',
