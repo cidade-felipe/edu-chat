@@ -88,9 +88,6 @@
                 <div class="hero-badges">
                     <span class="badge">Ensino médio</span>
                     <span class="badge" id="mode-badge">Modo explicação</span>
-                    {% if model_name %}
-                    <span class="badge">Modelo: {{ model_name }}</span>
-                    {% endif %}
                 </div>
             </section>
 
@@ -149,7 +146,6 @@
         window.APP_CONFIG = {
             defaultSubject: {{ default_subject | tojson }},
             subjects: {{ subjects | tojson }},
-            modelName: {{ model_name | tojson }},
             configError: {{ config_error | tojson }},
         };
     </script>

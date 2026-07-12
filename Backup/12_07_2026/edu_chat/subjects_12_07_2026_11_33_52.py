@@ -354,8 +354,6 @@ Objetivos de resposta:
 - Usar linguagem simples, direta e didática.
 - Priorizar respostas curtas, normalmente entre 1 e 3 parágrafos.
 - Quando a dúvida envolver cálculo, mostrar um passo a passo enxuto.
-- Não usar LaTeX ou notação matemática com barras invertidas, como \( \), \[ \], \frac ou \cdot.
-- Escrever fórmulas em texto comum, por exemplo: f(x) = ax + b, a > 0, x^2, 2 * 3.
 - Sempre que fizer sentido, usar um exemplo prático do cotidiano.
 - Se houver erro conceitual na pergunta do aluno, corrigir com cuidado e explicar o porquê.
 - Se não souber algo com segurança, dizer isso claramente em vez de inventar.

@@ -115,70 +115,6 @@ function isListItem(line) {
 }
 
 /**
- * Divide uma linha de tabela Markdown em células.
- *
- * @param {string} line Linha no formato `| coluna | coluna |`.
- * @returns {string[]} Células extraídas da linha.
- */
-function splitTableRow(line) {
-    return line
-        .trim()
-        .replace(/^\|/, "")
-        .replace(/\|$/, "")
-        .split("|")
-        .map((cell) => cell.trim());
-}
-
-/**
- * Verifica se a linha é o separador obrigatório de uma tabela Markdown.
- *
- * @param {string} line Linha que pode conter `| --- | --- |`.
- * @returns {boolean} `true` quando a linha separa cabeçalho e corpo.
- */
-function isTableSeparator(line) {
-    const cells = splitTableRow(line);
-    return cells.length > 1 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
-}
-
-/**
- * Verifica se uma posição do texto inicia uma tabela Markdown válida.
- *
- * @param {string[]} lines Todas as linhas da mensagem.
- * @param {number} index Posição da possível linha de cabeçalho.
- * @returns {boolean} `true` quando há cabeçalho e separador.
- */
-function startsTable(lines, index) {
-    return (
-        index + 1 < lines.length &&
-        lines[index].includes("|") &&
-        isTableSeparator(lines[index + 1])
-    );
-}
-
-/**
- * Renderiza uma tabela Markdown em HTML seguro.
- *
- * @param {string[]} rows Linhas da tabela, incluindo cabeçalho e separador.
- * @returns {string} Tabela HTML envolvida por container rolável.
- */
-function renderTable(rows) {
-    const headerCells = splitTableRow(rows[0])
-        .map((cell) => `<th>${renderInlineMarkdown(escapeHtml(cell))}</th>`)
-        .join("");
-
-    const bodyRows = rows.slice(2)
-        .map((row) => {
-            const cells = splitTableRow(row)
-                .map((cell) => `<td>${renderInlineMarkdown(escapeHtml(cell))}</td>`)
-                .join("");
-            return `<tr>${cells}</tr>`;
-        })
-        .join("");
-
-    return `<div class="table-scroll"><table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`;
-}
-
-/**
  * Converte Markdown básico em HTML seguro para exibição no chat.
  *
  * A implementação foi mantida local e enxuta para evitar dependências extras,
@@ -195,7 +131,6 @@ function renderMarkdown(markdown) {
     let currentListType = null;
     let currentListItems = [];
     let currentParagraph = [];
-    let index = 0;
 
     function flushParagraph() {
         if (currentParagraph.length === 0) {
@@ -224,31 +159,13 @@ function renderMarkdown(markdown) {
         currentListItems = [];
     }
 
-    while (index < lines.length) {
-        const line = lines[index];
+    lines.forEach((line) => {
         const trimmedLine = line.trim();
 
         if (!trimmedLine) {
             flushParagraph();
             flushList();
-            index += 1;
-            continue;
-        }
-
-        if (startsTable(lines, index)) {
-            flushParagraph();
-            flushList();
-
-            const tableRows = [lines[index], lines[index + 1]];
-            index += 2;
-
-            while (index < lines.length && lines[index].trim().includes("|")) {
-                tableRows.push(lines[index]);
-                index += 1;
-            }
-
-            html.push(renderTable(tableRows));
-            continue;
+            return;
         }
 
         const headingMatch = /^(#{1,6})\s+(.*)$/.exec(trimmedLine);
@@ -258,8 +175,7 @@ function renderMarkdown(markdown) {
             const level = headingMatch[1].length;
             const content = renderInlineMarkdown(escapeHtml(headingMatch[2].trim()));
             html.push(`<h${level}>${content}</h${level}>`);
-            index += 1;
-            continue;
+            return;
         }
 
         if (isListItem(trimmedLine)) {
@@ -274,14 +190,12 @@ function renderMarkdown(markdown) {
 
             currentListType = nextListType;
             currentListItems.push(itemContent);
-            index += 1;
-            continue;
+            return;
         }
 
         flushList();
         currentParagraph.push(line);
-        index += 1;
-    }
+    });
 
     flushParagraph();
     flushList();
@@ -456,7 +370,7 @@ function renderMessages() {
 
     state.history.forEach((message) => {
         const roleLabel = message.role === "user" ? "Você" : `Tutor de ${subject.label}`;
-        const avatar = message.role === "user" ? "image/aluno.png" : subject.icon;
+        const avatar = message.role === "user" ? "U" : subject.icon;
         elements.messageList.appendChild(createMessageElement(message, roleLabel, avatar));
     });
 

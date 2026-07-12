@@ -456,7 +456,7 @@ function renderMessages() {
 
     state.history.forEach((message) => {
         const roleLabel = message.role === "user" ? "Você" : `Tutor de ${subject.label}`;
-        const avatar = message.role === "user" ? "image/aluno.png" : subject.icon;
+        const avatar = message.role === "user" ? "U" : subject.icon;
         elements.messageList.appendChild(createMessageElement(message, roleLabel, avatar));
     });
 

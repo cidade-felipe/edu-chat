@@ -60,18 +60,6 @@ class SubjectsTestCase(unittest.TestCase):
         self.assertIn("linguagem simples", prompt)
         self.assertIn("português do Brasil", prompt)
 
-    def test_prompt_asks_for_plain_text_formulas(self) -> None:
-        """Evita respostas com LaTeX cru na interface web.
-
-        O frontend renderiza Markdown básico, mas não possui renderizador de
-        fórmulas matemáticas. Por isso, o prompt precisa orientar o modelo a
-        escrever expressões matemáticas em texto comum.
-        """
-        prompt = build_system_prompt("matematica", quiz_mode=False)
-
-        self.assertIn("Não usar LaTeX", prompt)
-        self.assertIn("f(x) = ax + b", prompt)
-
     def test_subjects_expose_quiz_starter_questions(self) -> None:
         """Garante que cada disciplina oferece exemplos coerentes para modo quiz.
 

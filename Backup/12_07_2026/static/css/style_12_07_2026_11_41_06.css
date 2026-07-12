@@ -587,8 +587,7 @@ body::before {
 .message-bubble ul,
 .message-bubble ol,
 .message-bubble pre,
-.message-bubble blockquote,
-.message-bubble .table-scroll {
+.message-bubble blockquote {
     margin: 0 0 1rem;
 }
 
@@ -642,38 +641,6 @@ body::before {
     color: #9ef4ff;
     font-size: 0.95em;
     font-family: Consolas, "Courier New", monospace;
-}
-
-.message-bubble .table-scroll {
-    width: 100%;
-    overflow-x: auto;
-    border: 1px solid rgba(24, 210, 255, 0.14);
-    border-radius: 14px;
-}
-
-.message-bubble table {
-    width: 100%;
-    min-width: 520px;
-    border-collapse: collapse;
-    background: rgba(255, 255, 255, 0.025);
-}
-
-.message-bubble th,
-.message-bubble td {
-    padding: 12px 14px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    text-align: left;
-    vertical-align: top;
-}
-
-.message-bubble th {
-    color: #ffffff;
-    background: rgba(24, 210, 255, 0.1);
-    font-weight: 700;
-}
-
-.message-bubble tr:last-child td {
-    border-bottom: 0;
 }
 
 .message[data-role="user"] .message-bubble {

@@ -36,17 +36,6 @@ class AppRoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(get_subject(DEFAULT_SUBJECT).label.encode("utf-8"), response.data)
 
-    def test_homepage_shows_configured_model(self) -> None:
-        """Confirma que a página inicial mostra o modelo configurado.
-
-        O nome do modelo ajuda a validar visualmente qual deployment está sendo
-        usado durante demonstrações e testes manuais.
-        """
-        response = self.client.get("/")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Modelo:", response.data)
-
 
 if __name__ == "__main__":
     unittest.main()
