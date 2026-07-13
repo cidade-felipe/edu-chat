@@ -29,7 +29,7 @@ SUBJECTS: dict[str, Subject] = {
             'raciocínio por trás de fórmulas e contas.'
         ),
         starter_questions=(
-            'Explique função afim de forma simples.',
+            'Explique função afim.',
             'Como resolver regra de três passo a passo?',
             'Qual a diferença entre média e mediana?',
         ),
@@ -73,9 +73,9 @@ SUBJECTS: dict[str, Subject] = {
             'soltas em narrativas fáceis de lembrar.'
         ),
         starter_questions=(
-            'Resuma a Revolução Francesa em 3 parágrafos.',
-            'Resuma a Guerra Fria de forma simples.',
-            'Resuma a Era Vargas objetivamente.',
+            'Explique a Revolução Francesa.',
+            'Explique a Guerra Fria.',
+            'Explique a Era Vargas.',
         ),
         quiz_starter_questions=(
             'Um quiz sobre Revolução Francesa.',
@@ -96,7 +96,7 @@ SUBJECTS: dict[str, Subject] = {
         ),
         starter_questions=(
             'O que é velocidade média?',
-            'Explique a segunda lei de Newton com exemplo.',
+            'Explique a segunda lei de Newton.',
             'Como funciona a conservação de energia?',
         ),
         quiz_starter_questions=(
@@ -118,7 +118,7 @@ SUBJECTS: dict[str, Subject] = {
         ),
         starter_questions=(
             'Qual a diferença entre átomo e molécula?',
-            'Explique ligações químicas de forma simples.',
+            'Explique ligações químicas.',
             'Como balancear uma equação química?',
         ),
         quiz_starter_questions=(
@@ -351,8 +351,8 @@ Seu foco principal é ensinar {disciplina.focus_topics}.
 
 Objetivos de resposta:
 - Responder sempre em português do Brasil.
-- Usar linguagem simples, direta e didática.
-- Priorizar respostas curtas, normalmente entre 1 e 3 parágrafos.
+- Usar linguagem simples e didática.
+- Priorizar respostas detalhadas, normalmente entre 5 a 6 parágrafos.
 - Quando a dúvida envolver cálculo, mostrar um passo a passo enxuto.
 - Não usar LaTeX ou notação matemática com barras invertidas, como \( \), \[ \], \frac ou \cdot.
 - Escrever fórmulas em texto comum, por exemplo: f(x) = ax + b, a > 0, x^2, 2 * 3.

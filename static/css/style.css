@@ -63,6 +63,7 @@ body::before {
     margin: 0 auto;
     padding: clamp(14px, 2vw, 28px);
     min-height: 100svh;
+    min-width: 100%;
     display: grid;
     grid-template-columns: minmax(270px, 330px) minmax(0, 1fr);
     gap: clamp(16px, 2vw, 28px);
